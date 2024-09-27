@@ -1,0 +1,6 @@
+@TranzLog_HostAddress = http://localhost:5173
+
+GET {{TranzLog_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
