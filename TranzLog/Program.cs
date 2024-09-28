@@ -1,4 +1,8 @@
 
+using Microsoft.EntityFrameworkCore;
+using TranzLog.Data;
+using TranzLog.Models.DTO;
+
 namespace TranzLog
 {
     public class Program
@@ -8,7 +12,24 @@ namespace TranzLog
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
+            string? connection = builder.Configuration.GetConnectionString("db");
+            string? versingString = builder.Configuration.GetConnectionString("Version");
+            if (connection != null && versingString != null)
+            {
+                var version = new MySqlServerVersion(new Version(versingString));
+                builder.Services.AddDbContext<ShippingDbContext>(dbContextOptions =>
+                {
+                    dbContextOptions.UseLazyLoadingProxies();
+                    dbContextOptions.UseMySql(connection, version);
+                });
+            }
+            else
+            {
+                Console.WriteLine("Ошибка в строке подключения к БД.");
+                Environment.Exit(1);
+            }
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
+            builder.Services.AddMemoryCache();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

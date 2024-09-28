@@ -5,18 +5,18 @@ namespace TranzLog.Models
     public class TransportOrder
     {
         public int Id { get; set; }
-        public Shipper? Shipper { get; set; }
+        public virtual Shipper? Shipper { get; set; }
         public int? ShipperId { get; set; }
         [Required]
-        public Consignee? Consignee { get; set; }
+        public virtual Consignee? Consignee { get; set; }
         public int? ConsigneeId { get; set; }
 
-        public Route? Route { get; set; }
+        public virtual Route? Route { get; set; }
         public int? RouteId { get; set; }
 
-        public Vehicle? Vehicle { get; set; }
+        public virtual Vehicle? Vehicle { get; set; }
         public int? VehicleId { get; set; }
-        public Cargo? Cargo { get; set; }
+        public virtual Cargo? Cargo { get; set; }
         public int? CargoId { get; set; }
 
         public DateTime? CreatedAt { get; set; }
