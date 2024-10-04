@@ -1,7 +1,9 @@
 
 using Microsoft.EntityFrameworkCore;
 using TranzLog.Data;
+using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
+using TranzLog.Repositories;
 
 namespace TranzLog
 {
@@ -30,6 +32,13 @@ namespace TranzLog
             }
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddMemoryCache();
+            builder.Services.AddScoped<IRepository<ShipperDTO>, ShipperRepository>();
+            builder.Services.AddScoped<IRepository<ConsigneeDTO>, ConsigneeRepository>();
+            builder.Services.AddScoped<IRepository<DriverDTO>, DriverRepository>();
+            builder.Services.AddScoped<IRepository<CargoDTO>, CargoRepository>();
+            builder.Services.AddScoped<IRepository<RouteDTO>, RouteRepository>();
+            builder.Services.AddScoped<IRepository<VehicleDTO>, VehicleRepository>();
+            builder.Services.AddScoped<IRepository<TransportOrderDTO>, TransportOrderRepository>();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

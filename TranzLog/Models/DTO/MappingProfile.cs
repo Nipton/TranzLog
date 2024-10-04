@@ -7,6 +7,9 @@ namespace TranzLog.Models.DTO
         public MappingProfile() 
         {
             CreateMap<Shipper, ShipperDTO>().ReverseMap();
+            CreateMap<Consignee, ConsigneeDTO>().ReverseMap();
+            CreateMap<Driver, DriverDTO>().ReverseMap();
+            CreateMap<Cargo, CargoDTO>().ReverseMap();
         }
     }
 }
