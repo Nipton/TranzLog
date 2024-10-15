@@ -12,6 +12,7 @@ namespace TranzLog.Data
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<Models.Route> Routes { get; set; }
         public DbSet<TransportOrder> TransportOrders { get; set; }
+        public DbSet<User> Users { get; set; }
 
 
         public ShippingDbContext(DbContextOptions<ShippingDbContext> dbContextOptions) : base(dbContextOptions) { }

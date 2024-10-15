@@ -1,5 +1,9 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using TranzLog.Data;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
@@ -12,8 +16,6 @@ namespace TranzLog
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            // Add services to the container.
             string? connection = builder.Configuration.GetConnectionString("db");
             string? versingString = builder.Configuration.GetConnectionString("Version");
             if (connection != null && versingString != null)
@@ -40,13 +42,61 @@ namespace TranzLog
             builder.Services.AddScoped<IRepository<VehicleDTO>, VehicleRepository>();
             builder.Services.AddScoped<IRepository<TransportOrderDTO>, TransportOrderRepository>();
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
+            builder.Services.AddEndpointsApiExplorer();            
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
+            {
+                option.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    ValidAudience = builder.Configuration["JWT:Aidience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                };
+            });
+            builder.Services.AddSwaggerGen(opt =>
+            {
+                opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "pls enter token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "Token",
+                    Scheme = "bearer"
+                });
+                opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id="Bearer",
+                        }
+                    },
+                    new string[]{ }
+                    }
+                });
+            });
+            var app = builder.Build();           
+            using (var scope = app.Services.CreateScope()) //Создание администратора
+            {
+                var services = scope.ServiceProvider;                
+                try
+                {
+                    var context = services.GetRequiredService<ShippingDbContext>();
+                    DbInitializer.Initialize(context);
+                }
+                catch (Exception ex)
+                {
+                    app.Logger.LogError($"Ошибка инициализации базы данных: {ex.Message}");
+                    Environment.Exit(1);
+                }
+            }   
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -54,7 +104,7 @@ namespace TranzLog
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
