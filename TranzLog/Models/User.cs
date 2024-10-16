@@ -7,8 +7,8 @@ namespace TranzLog.Models
         public int Id { get; set; }
         [Required]
         [MaxLength(50)]
-        public string UserName { get; set; } = "";
-        public Role Role { get; set; }
+        public string UserName { get; set; } = null!;
+        public Role Role { get; set; } = Role.User;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? Email { get; set; }

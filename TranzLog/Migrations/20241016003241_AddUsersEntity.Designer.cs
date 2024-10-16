@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TranzLog.Data;
 
@@ -11,9 +12,11 @@ using TranzLog.Data;
 namespace TranzLog.Migrations
 {
     [DbContext(typeof(ShippingDbContext))]
-    partial class ShippingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241016003241_AddUsersEntity")]
+    partial class AddUsersEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cargo", (string)null);
+                    b.ToTable("Cargo");
                 });
 
             modelBuilder.Entity("TranzLog.Models.Consignee", b =>
@@ -86,7 +89,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Consignees", (string)null);
+                    b.ToTable("Consignees");
                 });
 
             modelBuilder.Entity("TranzLog.Models.Driver", b =>
@@ -120,7 +123,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Drivers", (string)null);
+                    b.ToTable("Drivers");
                 });
 
             modelBuilder.Entity("TranzLog.Models.Route", b =>
@@ -147,7 +150,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Routes", (string)null);
+                    b.ToTable("Routes");
                 });
 
             modelBuilder.Entity("TranzLog.Models.Shipper", b =>
@@ -182,7 +185,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shippers", (string)null);
+                    b.ToTable("Shippers");
                 });
 
             modelBuilder.Entity("TranzLog.Models.TransportOrder", b =>
@@ -233,7 +236,7 @@ namespace TranzLog.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("TransportOrders", (string)null);
+                    b.ToTable("TransportOrders");
                 });
 
             modelBuilder.Entity("TranzLog.Models.User", b =>
@@ -277,7 +280,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("TranzLog.Models.Vehicle", b =>
@@ -311,7 +314,7 @@ namespace TranzLog.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.ToTable("Vehicles", (string)null);
+                    b.ToTable("Vehicles");
                 });
 
             modelBuilder.Entity("TranzLog.Models.TransportOrder", b =>

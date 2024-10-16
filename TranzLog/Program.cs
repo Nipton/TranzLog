@@ -8,6 +8,7 @@ using TranzLog.Data;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
 using TranzLog.Repositories;
+using TranzLog.Services.AuthenticationServices;
 
 namespace TranzLog
 {
@@ -41,6 +42,8 @@ namespace TranzLog
             builder.Services.AddScoped<IRepository<RouteDTO>, RouteRepository>();
             builder.Services.AddScoped<IRepository<VehicleDTO>, VehicleRepository>();
             builder.Services.AddScoped<IRepository<TransportOrderDTO>, TransportOrderRepository>();
+            builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+            builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();            
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
@@ -89,7 +92,8 @@ namespace TranzLog
                 try
                 {
                     var context = services.GetRequiredService<ShippingDbContext>();
-                    DbInitializer.Initialize(context);
+                    var passwordHasher = services.GetRequiredService<IPasswordHasher>();
+                    DbInitializer.Initialize(context, passwordHasher);
                 }
                 catch (Exception ex)
                 {
