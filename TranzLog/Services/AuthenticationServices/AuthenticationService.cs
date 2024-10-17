@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TranzLog.Data;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -20,10 +21,10 @@ namespace TranzLog.Services.AuthenticationServices
             this.passwordHasher = passwordHasher;
             this.tokenGenerator = tokenGenerator;
         }
-        public string AuthenticateAsync(LoginDTO loginDTO)
+        public async Task<string> AuthenticateAsync(LoginDTO loginDTO)
         {
             RegistrationResult result = new RegistrationResult();
-            User? user = db.Users.FirstOrDefault(x => x.UserName == loginDTO.UserName);
+            User? user = await db.Users.FirstOrDefaultAsync(x => x.UserName == loginDTO.UserName);
             if (user == null)
             {
                 throw new UserNotFoundException($"Пользователь {loginDTO.UserName} не найден.");
@@ -42,9 +43,9 @@ namespace TranzLog.Services.AuthenticationServices
         public async Task<RegistrationResult> RegisterAsync(RegisterDTO registerDto)
         {
             RegistrationResult result = new RegistrationResult();
-            if(db.Users.FirstOrDefault(x => x.UserName == registerDto.UserName) != null)
+            if(await db.Users.FirstOrDefaultAsync(x => x.UserName == registerDto.UserName) != null)
             {
-                result.Errors.Add("Имя пользователя уже занято.");
+                result.Message = "Имя пользователя уже занято.";
                 return result;
             }
             User user = mapper.Map<User>(registerDto);           

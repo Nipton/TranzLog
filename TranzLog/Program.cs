@@ -44,8 +44,15 @@ namespace TranzLog
             builder.Services.AddScoped<IRepository<TransportOrderDTO>, TransportOrderRepository>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();            
+            builder.Services.AddEndpointsApiExplorer();
+            var key = builder.Configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(key))
+            {
+                Console.WriteLine("В конфигурации отсутствует ключ JWT.");
+                Environment.Exit(1);
+            }
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
             {
                 option.TokenValidationParameters = new TokenValidationParameters
@@ -56,7 +63,7 @@ namespace TranzLog
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration["JWT:Issuer"],
                     ValidAudience = builder.Configuration["JWT:Aidience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
                 };
             });
             builder.Services.AddSwaggerGen(opt =>
