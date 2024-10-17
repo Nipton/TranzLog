@@ -23,7 +23,6 @@ namespace TranzLog.Services.AuthenticationServices
         }
         public async Task<string> AuthenticateAsync(LoginDTO loginDTO)
         {
-            RegistrationResult result = new RegistrationResult();
             User? user = await db.Users.FirstOrDefaultAsync(x => x.UserName == loginDTO.UserName);
             if (user == null)
             {

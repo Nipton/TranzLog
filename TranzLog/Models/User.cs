@@ -1,7 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace TranzLog.Models
 {
+    [Index(nameof(UserName), IsUnique = true)]
     public class User
     {
         public int Id { get; set; }

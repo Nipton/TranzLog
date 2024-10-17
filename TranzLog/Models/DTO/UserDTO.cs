@@ -22,6 +22,6 @@ namespace TranzLog.Models.DTO
         public DateTime CreatedDate { get; set; }
         [MinLength(8)]
         [MaxLength(40)]
-        public string Password { get; set; } = null!;
+        public string Password { get; set; } = "";
     }
 }

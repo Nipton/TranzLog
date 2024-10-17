@@ -12,9 +12,11 @@ namespace TranzLog.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthenticationService authenticationService;
-        public AuthController(IAuthenticationService authenticationService)
+        private readonly ILogger<AuthController> logger;
+        public AuthController(IAuthenticationService authenticationService, ILogger<AuthController> logger)
         {
             this.authenticationService = authenticationService;
+            this.logger = logger;
         }
         [HttpPost("login")]
         public async Task<ActionResult> Login(LoginDTO userDTO)
@@ -32,8 +34,9 @@ namespace TranzLog.Controllers
             {
                 return StatusCode(400, ex.Message);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.LogError($"Ошибка во время аутентификации пользователя {userDTO.UserName}: {ex}");
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -54,6 +57,7 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError($"Ошибка во время регистрации пользователя {registerDTO.UserName}: {ex}");
                 return StatusCode(500, "Internal server error");
             }
         }
