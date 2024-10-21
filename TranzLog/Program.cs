@@ -8,6 +8,7 @@ using TranzLog.Data;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
 using TranzLog.Repositories;
+using TranzLog.Services;
 using TranzLog.Services.AuthenticationServices;
 
 namespace TranzLog
@@ -49,6 +50,7 @@ namespace TranzLog
             builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             var key = builder.Configuration["Jwt:Key"];

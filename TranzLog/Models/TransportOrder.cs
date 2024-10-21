@@ -22,5 +22,6 @@ namespace TranzLog.Models
         public DateTime? CompletionTime { get; set; }
         public string? Notes { get; set; }
         public OrderStatus OrderStatus { get; set; }
+        public string? TrackNumber { get; set; }
     }
 }

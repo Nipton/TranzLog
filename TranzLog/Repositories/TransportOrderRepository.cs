@@ -23,7 +23,7 @@ namespace TranzLog.Repositories
         public async Task<TransportOrderDTO> AddAsync(TransportOrderDTO entityDTO)
         {
             TransportOrder order = mapper.Map<TransportOrder>(entityDTO);
-            await db.TransportOrders.AddRangeAsync(order);
+            await db.TransportOrders.AddAsync(order);
             await db.SaveChangesAsync();
             cache.Remove(CacheKeyPrefix);
             return mapper.Map<TransportOrderDTO>(order);

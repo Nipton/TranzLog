@@ -5,7 +5,11 @@ namespace TranzLog.Services
 {
     public class CurrentUserProvider
     {
-        public static User? GetCurrentUser(HttpContext httpContext)
+        /// <summary>
+        /// Возвращает текущего пользователя с его именем и ролью.
+        /// </summary>
+        /// <returns>Объект, содержащий имя и роль текущего пользователя.</returns>
+        public static User? GetCurrentUserInfo(HttpContext httpContext)
         {
             var identity = httpContext.User.Identity as ClaimsIdentity;
             if (identity != null)

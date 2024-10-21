@@ -10,5 +10,6 @@ namespace TranzLog.Models.DTO
         public double Volume { get; set; }
         public double Weight { get; set; }
         public string? PackagingType { get; set; }
+        public int? TransportOrderId { get; set; }
     }
 }
