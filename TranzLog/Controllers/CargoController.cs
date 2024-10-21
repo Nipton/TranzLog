@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TranzLog.Interfaces;
+using TranzLog.Models;
 using TranzLog.Models.DTO;
 
 namespace TranzLog.Controllers
@@ -45,6 +47,7 @@ namespace TranzLog.Controllers
             }
         }
         [HttpGet]
+        [Authorize(Roles = "Administrator, Manager")]
         public ActionResult<IEnumerable<CargoDTO>> GetAllCargo()
         {
             try

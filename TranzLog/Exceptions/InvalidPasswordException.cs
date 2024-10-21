@@ -2,6 +2,6 @@
 {
     public class InvalidPasswordException : Exception
     {
-        public InvalidPasswordException(string message) : base() { }
+        public InvalidPasswordException(string message) : base(message) { }
     }
 }

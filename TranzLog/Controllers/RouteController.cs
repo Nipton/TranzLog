@@ -8,8 +8,8 @@ namespace TranzLog.Controllers
     [Route("[controller]")]
     public class RouteController : ControllerBase
     {
-        private readonly IRepository<RouteDTO> repo;
-        public RouteController(IRepository<RouteDTO> repo)
+        private readonly IRouteRepository repo;
+        public RouteController(IRouteRepository repo)
         {
             this.repo = repo;
         }
@@ -18,6 +18,7 @@ namespace TranzLog.Controllers
         {
             try
             {
+                
                 var createdRoute = await repo.AddAsync(routeDTO);
                 return Ok(createdRoute);
 
@@ -89,6 +90,21 @@ namespace TranzLog.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpGet("search")]
+        public async Task<ActionResult<RouteDTO>> GetRoutesAsync(string from, string to)
+        {
+            try
+            {
+                var route = await repo.GetRoutesAsync(from, to);
+                if (route != null)
+                    return Ok(route);
+                else return NotFound("Маршрут не найден.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, $"Internal server error");
             }
         }
     }

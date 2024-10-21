@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
 using TranzLog.Interfaces;
@@ -7,7 +8,7 @@ using TranzLog.Models.DTO;
 
 namespace TranzLog.Repositories
 {
-    public class RouteRepository : IRepository<RouteDTO>
+    public class RouteRepository : IRouteRepository
     {
         private readonly ShippingDbContext db;
         private readonly IMapper mapper;
@@ -97,6 +98,13 @@ namespace TranzLog.Repositories
             var route = db.Routes.Select(x => mapper.Map<RouteDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, route, TimeSpan.FromMinutes(360));
             return route;
+        }
+        public async Task<RouteDTO?> GetRoutesAsync(string from, string to)
+        {
+            var route = await db.Routes.FirstOrDefaultAsync(route => route.Origin == from && route.Destination == to && route.IsActive);
+            if (route != null)
+                return mapper.Map<RouteDTO?>(route);
+            return null;
         }
     }
 }

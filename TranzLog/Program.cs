@@ -17,6 +17,10 @@ namespace TranzLog
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Logging.AddConsole();
+            var logger = LoggerFactory.Create(logging => logging.AddConsole())
+                          .CreateLogger("StartupLogger");
+            logger.LogInformation("Начинаем настройку сервисов...");
             string? connection = builder.Configuration.GetConnectionString("db");
             string? versingString = builder.Configuration.GetConnectionString("Version");
             if (connection != null && versingString != null)
@@ -30,8 +34,7 @@ namespace TranzLog
             }
             else
             {
-                Console.WriteLine("Ошибка в строке подключения к БД.");
-                Environment.Exit(1);
+                logger.LogError("Ошибка в строке подключения к БД.");
             }
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddMemoryCache();
@@ -39,19 +42,25 @@ namespace TranzLog
             builder.Services.AddScoped<IRepository<ConsigneeDTO>, ConsigneeRepository>();
             builder.Services.AddScoped<IRepository<DriverDTO>, DriverRepository>();
             builder.Services.AddScoped<IRepository<CargoDTO>, CargoRepository>();
-            builder.Services.AddScoped<IRepository<RouteDTO>, RouteRepository>();
+            builder.Services.AddScoped<IRouteRepository, RouteRepository>();
             builder.Services.AddScoped<IRepository<VehicleDTO>, VehicleRepository>();
             builder.Services.AddScoped<IRepository<TransportOrderDTO>, TransportOrderRepository>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             var key = builder.Configuration["Jwt:Key"];
             if (string.IsNullOrEmpty(key))
             {
-                Console.WriteLine("В конфигурации отсутствует ключ JWT.");
-                Environment.Exit(1);
+                logger.LogError("В конфигурации отсутствует ключ JWT.");
+            }
+            var issuer = builder.Configuration["Jwt:Issuer"];
+            var audience = builder.Configuration["Jwt:Audience"];
+            if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
+            {
+                logger.LogError("В конфигурации JWT отсутствует Issuer или Audience.");
             }
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
             {
@@ -61,9 +70,9 @@ namespace TranzLog
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["JWT:Issuer"],
-                    ValidAudience = builder.Configuration["JWT:Aidience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!))
                 };
             });
             builder.Services.AddSwaggerGen(opt =>
@@ -92,6 +101,7 @@ namespace TranzLog
                     }
                 });
             });
+            logger.LogInformation("Все сервисы добавлены.");
             var app = builder.Build();           
             using (var scope = app.Services.CreateScope()) //Создание администратора
             {
@@ -105,7 +115,6 @@ namespace TranzLog
                 catch (Exception ex)
                 {
                     app.Logger.LogError($"Ошибка инициализации базы данных: {ex.Message}");
-                    Environment.Exit(1);
                 }
             }   
             if (app.Environment.IsDevelopment())

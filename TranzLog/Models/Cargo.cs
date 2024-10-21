@@ -11,6 +11,7 @@ namespace TranzLog.Models
         public double Volume { get; set; }
         public double Weight { get; set; }
         public string? PackagingType { get; set; }
-        public virtual ICollection<TransportOrder>? TransportOrders { get; set; }
+        public int? TransportOrderId { get; set; }
+        public virtual TransportOrder? TransportOrder { get; set; }
     }
 }

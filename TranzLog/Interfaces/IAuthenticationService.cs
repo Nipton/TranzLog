@@ -6,5 +6,6 @@ namespace TranzLog.Interfaces
     {
         Task<string> AuthenticateAsync(LoginDTO loginDTO);
         Task<RegistrationResult> RegisterAsync(RegisterDTO registerDto);
+        Task ChangeUserRole(string userName, string targetRole, string roleCurrentUser);
     }
 }

@@ -20,8 +20,5 @@ namespace TranzLog.Models.DTO
         public string? PhoneNumber { get; set; }
 
         public DateTime CreatedDate { get; set; }
-        [MinLength(8)]
-        [MaxLength(40)]
-        public string Password { get; set; } = "";
     }
 }

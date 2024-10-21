@@ -28,7 +28,18 @@ namespace TranzLog.Repositories
             await db.SaveChangesAsync();
             cache.Remove(CacheKeyPrefix);
         }
-
+        public async Task UpdateUserAsync(User user)
+        {
+            db.Update(user);
+            await db.SaveChangesAsync();
+            cache.Remove(CacheKeyPrefix + user.Id);
+            cache.Remove(CacheKeyPrefix);
+        }
+        public async Task<User?> GetUserEntityByNameAsync(string userName)
+        {
+            User? user = await db.Users.SingleOrDefaultAsync(x => x.UserName == userName);
+            return user;
+        }
         public async Task<UserDTO?> GetUserByIdAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
@@ -52,14 +63,14 @@ namespace TranzLog.Repositories
         public async Task<UserDTO?> GetUserByNameAsync(string userName)
         {
             string cacheKey = CacheKeyPrefix + userName;
-            if (cache.TryGetValue(cacheKey, out UserDTO? cacheReesult))
+            if (cache.TryGetValue(cacheKey, out UserDTO? cacheResult))
             {
-                if (cacheReesult != null)
+                if (cacheResult != null)
                 {
-                    return cacheReesult;
+                    return cacheResult;
                 }
             }
-            User? user = await db.Users.FirstOrDefaultAsync(x => x.UserName == userName);
+            User? user = await db.Users.SingleOrDefaultAsync(x => x.UserName == userName);
             if (user == null)
             {
                 return null;
@@ -76,7 +87,16 @@ namespace TranzLog.Repositories
             {
                 throw new UserNotFoundException($"Пользователь с ID {userDTO.Id} не найден.");
             }
-            mapper.Map(userDTO, user); 
+            User? userByUserName = await db.Users.SingleOrDefaultAsync(x => x.UserName == userDTO.UserName);
+            if (userByUserName != null && userByUserName.Id != user.Id)
+            {
+                throw new DuplicateException($"Имя пользователя {userByUserName.UserName} уже занято");   
+            }
+            user.FirstName = userDTO.FirstName;
+            user.LastName = userDTO.LastName;
+            user.Email = userDTO.Email;
+            user.PhoneNumber = userDTO.PhoneNumber;
+            user.UserName = userDTO.UserName;
             await db.SaveChangesAsync();
             cache.Remove(CacheKeyPrefix + userDTO.UserName);
             cache.Remove(CacheKeyPrefix + userDTO.Id);
@@ -100,14 +120,14 @@ namespace TranzLog.Repositories
         public async Task<bool> UserExistsAsync(string userName)
         {
             string cacheKey = CacheKeyPrefix + userName;
-            if (cache.TryGetValue(cacheKey, out UserDTO? cacheReesult))
+            if (cache.TryGetValue(cacheKey, out UserDTO? cacheResult))
             {
-                if (cacheReesult != null)
+                if (cacheResult != null)
                 {
                     return true;
                 }
             }
-            User? user = await db.Users.FirstOrDefaultAsync(x=> x.UserName == userName);
+            User? user = await db.Users.SingleOrDefaultAsync(x=> x.UserName == userName);
             if (user != null)
             {
                 UserDTO userDTO = mapper.Map<UserDTO>(user);
@@ -139,6 +159,6 @@ namespace TranzLog.Repositories
             }).ToList();
             cache.Set(CacheKeyPrefix, users, TimeSpan.FromMinutes(360));
             return users;
-        }
+        }      
     }
 }

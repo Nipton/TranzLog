@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting.Server;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -18,6 +19,7 @@ namespace TranzLog.Controllers
             this.authenticationService = authenticationService;
             this.logger = logger;
         }
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult> Login(LoginDTO userDTO)
         {
@@ -28,11 +30,11 @@ namespace TranzLog.Controllers
             }
             catch (UserNotFoundException ex)
             {
-                return StatusCode(400, ex.Message);
+                return StatusCode(401, ex.Message);
             }
             catch (InvalidPasswordException ex)
             {
-                return StatusCode(400, ex.Message);
+                return StatusCode(401, ex.Message);
             }
             catch (Exception ex)
             {
@@ -40,6 +42,7 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDTO registerDTO)
         {
