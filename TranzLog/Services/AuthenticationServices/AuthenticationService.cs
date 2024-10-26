@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TranzLog.Data;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -104,6 +105,39 @@ namespace TranzLog.Services.AuthenticationServices
                 throw new UnauthorizedAccessException($"Недостаточно прав для данной операции.");
             }
             await repo.UpdateUserAsync(targetUser);
+        }
+        /// <summary>
+        /// Возвращает текущего пользователя с его именем и ролью.
+        /// </summary>
+        /// <returns>Объект, содержащий имя и роль текущего пользователя.</returns>
+        public User? GetCurrentUserInfo(HttpContext httpContext)
+        {
+            var identity = httpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                var userName = identity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userRole = identity.FindFirst(ClaimTypes.Role)?.Value;
+                if (userName != null && userRole != null)
+                {
+                    User user = new User { UserName = userName, Role = (Role)Enum.Parse(typeof(Role), userRole) };
+                    return user;
+                }
+            }
+            return null;
+        }
+        /// <summary>
+        /// Возвращает текущего пользователя.
+        /// </summary>
+        /// <returns>Объект, содержащий полные данные пользователя.</returns>
+        public async Task<UserDTO> GetCurrentUserAsync(HttpContext httpContext)
+        {
+            User? currentUser = GetCurrentUserInfo(httpContext);
+            if (currentUser == null)
+                throw new UnauthorizedAccessException("Ошибка аутентификации.");
+            var currentUserWithId = await repo.GetUserByNameAsync(currentUser.UserName);
+            if (currentUserWithId == null)
+                throw new UnauthorizedAccessException("Ошибка аутентификации.");
+            return currentUserWithId;
         }
     }
 }

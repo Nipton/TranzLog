@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TranzLog.Data;
 
@@ -11,9 +12,11 @@ using TranzLog.Data;
 namespace TranzLog.Migrations
 {
     [DbContext(typeof(ShippingDbContext))]
-    partial class ShippingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241023124249_CargoChanges")]
+    partial class CargoChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,9 +135,6 @@ namespace TranzLog.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Drivers");
@@ -226,17 +226,11 @@ namespace TranzLog.Migrations
                     b.Property<int>("OrderStatus")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("PlannedDeliveryTime")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int?>("RouteId")
                         .HasColumnType("int");
 
                     b.Property<int?>("ShipperId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartTransportTime")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("TrackNumber")
                         .HasColumnType("varchar(255)");

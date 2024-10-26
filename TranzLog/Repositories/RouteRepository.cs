@@ -106,5 +106,29 @@ namespace TranzLog.Repositories
                 return mapper.Map<RouteDTO?>(route);
             return null;
         }
+
+        public async Task<bool> RouteExistsAsync(int id)
+        {
+            string cacheKey = CacheKeyPrefix + id;
+            if (cache.TryGetValue(cacheKey, out RouteDTO? cacheResult))
+            {
+                if (cacheResult != null)
+                {
+                    return true;
+                }
+            }
+            Models.Route? route = await db.Routes.FindAsync(id);
+            if (route != null)
+            {
+                var routeDTO = mapper.Map<RouteDTO>(route);
+                cache.Set(cacheKey, routeDTO, TimeSpan.FromMinutes(360));
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
     }
 }

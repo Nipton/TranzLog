@@ -1,7 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace TranzLog.Models
 {
+    [Index(nameof(TrackNumber), IsUnique = true)]
     public class TransportOrder
     {
         public int Id { get; set; }
@@ -20,6 +22,8 @@ namespace TranzLog.Models
         public virtual List<Cargo>? Cargo { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? CompletionTime { get; set; }
+        public DateTime? StartTransportTime { get; set; } 
+        public DateTime? PlannedDeliveryTime { get; set; }
         public string? Notes { get; set; }
         public OrderStatus OrderStatus { get; set; }
         public string? TrackNumber { get; set; }

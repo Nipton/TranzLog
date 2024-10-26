@@ -9,8 +9,8 @@ namespace TranzLog.Controllers
     [Route("[controller]")]
     public class DriverController : ControllerBase
     {
-        IRepository<DriverDTO> repo;
-        public DriverController(IRepository<DriverDTO> repository) 
+        IDriverRepository repo;
+        public DriverController(IDriverRepository repository) 
         { 
             repo = repository;
         }

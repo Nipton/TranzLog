@@ -8,8 +8,8 @@ namespace TranzLog.Controllers
     [Route("[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly IRepository<TransportOrderDTO> repo;
-        public OrderController(IRepository<TransportOrderDTO> repo)
+        private readonly ITransportOrderRepository repo;
+        public OrderController(ITransportOrderRepository repo)
         {
             this.repo = repo;
         }

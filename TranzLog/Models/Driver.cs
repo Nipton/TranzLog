@@ -5,6 +5,7 @@ namespace TranzLog.Models
     public class Driver
     {
         public int Id { get; set; }
+        public int? UserId {  get; set; }
         [Required]
         [MaxLength(50)]
         public string FirstName { get; set; } = "";

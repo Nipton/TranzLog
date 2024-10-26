@@ -5,6 +5,7 @@ namespace TranzLog.Models.DTO
     public class DriverDTO
     {
         public int Id { get; set; }
+        public int? UserId { get; set; }
         [Required]
         [MaxLength(50)]
         public string FirstName { get; set; } = "";

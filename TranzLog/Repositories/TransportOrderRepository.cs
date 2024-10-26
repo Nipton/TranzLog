@@ -1,13 +1,15 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
 
 namespace TranzLog.Repositories
 {
-    public class TransportOrderRepository : IRepository<TransportOrderDTO>
+    public class TransportOrderRepository : ITransportOrderRepository
     {
         private readonly ShippingDbContext db;
         private readonly IMapper mapper;
@@ -64,6 +66,8 @@ namespace TranzLog.Repositories
 
         public async Task<TransportOrderDTO> GetAsync(int id)
         {
+            if (id <= 0)
+                throw new ArgumentException($"Передано некорректное значение ID: {id}");
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out TransportOrderDTO? cacheResult))
             {
@@ -97,6 +101,48 @@ namespace TranzLog.Repositories
             var order = db.TransportOrders.Select(x => mapper.Map<TransportOrderDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, order, TimeSpan.FromMinutes(360));
             return order;
+        }
+
+        public async Task<TransportOrder?> GetOrderInfoByTrackerAsync(string trackNumber)
+        {
+            if (string.IsNullOrEmpty(trackNumber))
+            {
+                throw new ArgumentException("Не указан трек-номер");
+            }
+            TransportOrder? transportOrder = await db.TransportOrders.FirstOrDefaultAsync(order => order.TrackNumber == trackNumber);
+            return transportOrder;
+        }
+
+        public async Task<List<TransportOrder>> GetUserOrdersByIdAsync(int userId)
+        {
+            if (userId <= 0)
+                throw new ArgumentException($"Передано некорректное значение ID: {userId}");
+            var orders = await db.TransportOrders.Where(order => order.UserId == userId).ToListAsync();
+            return orders;
+        }
+
+        public async Task<List<TransportOrder>> GetPendingOrdersAsync()
+        {
+            var orders = await db.TransportOrders.Where(order => order.OrderStatus == OrderStatus.Pending).ToListAsync();
+            return orders;
+        }
+        public async Task UpdateOrderStatusAsync(int orderId, OrderStatus newStatus)
+        {
+            var order = await db.TransportOrders.FindAsync(orderId);
+            if (order == null)
+                throw new ArgumentException($"Заказ с ID {orderId} не найден.");
+            order.OrderStatus = newStatus;
+            if (newStatus == OrderStatus.Completed)
+                order.CompletionTime = DateTime.UtcNow;
+            else if(newStatus == OrderStatus.AcceptedByDriver)
+                order.StartTransportTime = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+        }
+        public async Task<List<DriverOrderDTO>> GetOrdersForDriverAsync(int driverId)
+        {
+            var orders = await db.TransportOrders.Where(order => order.Vehicle != null && order.Vehicle.DriverId == driverId && order.OrderStatus != OrderStatus.Cancelled).ToListAsync();
+            var ordersDTO =  orders.Select(order => mapper.Map<DriverOrderDTO>(order)).ToList();
+            return ordersDTO;
         }
     }
 }

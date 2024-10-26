@@ -133,7 +133,7 @@ namespace TranzLog.Controllers
         {
             try
             {
-                string? currentUserRole = CurrentUserProvider.GetCurrentUserInfo(HttpContext)?.Role.ToString();
+                string? currentUserRole = authenticationService.GetCurrentUserInfo(HttpContext)?.Role.ToString();
                 if(currentUserRole == null)
                 {
                     return StatusCode(401, $"Ошибка аутентификации.");

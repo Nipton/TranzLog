@@ -11,9 +11,12 @@ namespace TranzLog.Models.DTO
             CreateMap<Driver, DriverDTO>().ReverseMap();
             CreateMap<Cargo, CargoDTO>().ReverseMap();
             CreateMap<Route, RouteDTO>().ReverseMap();
+            CreateMap<Vehicle, VehicleDTO>().ReverseMap();
             CreateMap<TransportOrder, TransportOrderDTO>().ReverseMap();
             CreateMap<User, UserDTO>().ReverseMap();
             CreateMap<RegisterDTO, User>().ForMember(dest => dest.Password, opt => opt.Ignore());
+            CreateMap<TransportOrder, UserOrderResponseDTO>();
+            CreateMap<TransportOrder, DriverOrderDTO>();
         }
     }
 }

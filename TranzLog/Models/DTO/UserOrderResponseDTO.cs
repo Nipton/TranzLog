@@ -1,15 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace TranzLog.Models.DTO
+﻿namespace TranzLog.Models.DTO
 {
-    public class TransportOrderDTO
+    public class UserOrderResponseDTO
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public int? ShipperId { get; set; }
-        public int? ConsigneeId { get; set; }
-        public int? RouteId { get; set; }
-        public int? VehicleId { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? CompletionTime { get; set; }
         public DateTime? StartTransportTime { get; set; }
@@ -17,5 +10,9 @@ namespace TranzLog.Models.DTO
         public string? Notes { get; set; }
         public OrderStatus OrderStatus { get; set; }
         public string? TrackNumber { get; set; }
+        public ShipperDTO? Shipper { get; set; }
+        public ConsigneeDTO? Consignee { get; set; }
+        public RouteDTO? Route { get; set; }
+        public List<CargoDTO>? Cargo { get; set; } 
     }
 }
