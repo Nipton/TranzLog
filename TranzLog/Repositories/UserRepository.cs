@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
@@ -137,16 +138,20 @@ namespace TranzLog.Repositories
             return false;
         }
 
-        public IEnumerable<UserDTO> GetAllUsers()
+        public IEnumerable<UserDTO> GetAllUsers(int page = 1, int pageSize = 10)
         {
-            if(cache.TryGetValue(CacheKeyPrefix, out IEnumerable<UserDTO>? cacheList))
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
+            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<UserDTO>? cacheList))
             {
                 if(cacheList != null)
                 {
-                    return cacheList;
+                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
                 }
             }
-            var users = db.Users.Select(user => new UserDTO
+            var users = db.Users.Skip((page - 1) * pageSize).Take(pageSize).Select(user => new UserDTO
             {
                 Id = user.Id,
                 UserName = user.UserName,

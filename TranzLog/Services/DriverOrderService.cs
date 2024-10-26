@@ -49,10 +49,14 @@ namespace TranzLog.Services
             if (driver == null)
                 throw new UserNotFoundException($"Запись о водителе с ID {currentUser.Id} не найдена.");
             var order = await orderRepo.GetAsync(orderId);
+            if (order == null)
+                throw new EntityNotFoundException($"Заказ с ID {orderId} не найден.");
             if (order.VehicleId == null)
                 throw new ArgumentException("В заказе не указан транспорт и водитель.");
             var vehicle = await vehicleRepository.GetAsync((int)order.VehicleId);
-            if(vehicle.DriverId != driver.Id)
+            if (vehicle == null)
+                throw new EntityNotFoundException($"Транспорт с ID {order.VehicleId} не найден.");
+            if (vehicle.DriverId != driver.Id)
                 throw new AccessDeniedException("Недостаточно прав для данного действия.");
             await orderRepo.UpdateOrderStatusAsync(orderId, orderStatus);
         }

@@ -45,19 +45,23 @@ namespace TranzLog.Repositories
             }          
         }
 
-        public IEnumerable<ConsigneeDTO> GetAll()
+        public IEnumerable<ConsigneeDTO> GetAll(int page = 1, int pageSize = 10)
         {
-            if(cache.TryGetValue(CacheKeyPrefix, out IEnumerable<ConsigneeDTO>? result))
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
+            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<ConsigneeDTO>? result))
             {
                 if(result != null)
-                    return result;
+                    return result.Skip((page - 1) * pageSize).Take(pageSize);
             }
-            var list = db.Consignees.Select(x => mapper.Map<ConsigneeDTO>(x)).ToList();
+            var list = db.Consignees.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<ConsigneeDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, list, TimeSpan.FromMinutes(360));
             return list;
         }
 
-        public async Task<ConsigneeDTO> GetAsync(int id)
+        public async Task<ConsigneeDTO?> GetAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out ConsigneeDTO? cacheConsignee))
@@ -76,7 +80,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Consignee with ID {id} not found.");
+                return null;
             }
         }
 

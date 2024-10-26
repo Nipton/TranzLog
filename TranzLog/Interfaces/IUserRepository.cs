@@ -9,7 +9,7 @@ namespace TranzLog.Interfaces
         Task<User?> GetUserEntityByNameAsync(string userName);
         Task<UserDTO?> GetUserByIdAsync(int id);
         Task<UserDTO?> GetUserByNameAsync(string userName);
-        IEnumerable<UserDTO> GetAllUsers();
+        IEnumerable<UserDTO> GetAllUsers(int page = 1, int pageSize = 10);
         Task<UserDTO?> UpdateUserAsync(UserDTO userDTO);
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);

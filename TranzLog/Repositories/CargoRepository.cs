@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -19,9 +22,17 @@ namespace TranzLog.Repositories
             this.mapper = mapper;
             this.cache = cache;
         }
-
+        private async Task ValidateRelatedEntitiesAsync(CargoDTO entityDTO)
+        {
+            if (entityDTO.TransportOrderId != null)
+            {
+                if (!await db.TransportOrders.AnyAsync(x => x.Id == entityDTO.TransportOrderId))
+                    throw new EntityNotFoundException($"Заказ с ID {entityDTO.TransportOrderId} не найден.");
+            }
+        }
         public async Task<CargoDTO> AddAsync(CargoDTO entityDTO)
         {
+            await ValidateRelatedEntitiesAsync(entityDTO);
             Cargo cargo = mapper.Map<Cargo>(entityDTO);
             await db.Cargo.AddRangeAsync(cargo);
             await db.SaveChangesAsync();
@@ -31,6 +42,7 @@ namespace TranzLog.Repositories
 
         public async Task<CargoDTO> UpdateAsync(CargoDTO entityDTO)
         {
+            await ValidateRelatedEntitiesAsync(entityDTO);
             Cargo? cargo = await db.Cargo.FindAsync(entityDTO.Id);
             if (cargo != null)
             {
@@ -62,7 +74,7 @@ namespace TranzLog.Repositories
             }
         }
 
-        public async Task<CargoDTO> GetAsync(int id)
+        public async Task<CargoDTO?> GetAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out CargoDTO? cacheResult))
@@ -81,20 +93,24 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Cargo with ID {id} not found.");
+                return null;
             }
         }
 
-        public IEnumerable<CargoDTO> GetAll()
+        public IEnumerable<CargoDTO> GetAll(int page = 1, int pageSize = 10)
         {
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<CargoDTO>? cacheList))
             {
                 if(cacheList != null)
                 {
-                    return cacheList;
+                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
                 }
             }
-            var cargo = db.Cargo.Select(x => mapper.Map<CargoDTO>(x)).ToList();
+            var cargo = db.Cargo.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<CargoDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, cargo, TimeSpan.FromMinutes(360));
             return cargo;
         }

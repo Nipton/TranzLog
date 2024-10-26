@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
+using TranzLog.Models;
 using TranzLog.Models.DTO;
 
 namespace TranzLog.Controllers
@@ -8,23 +10,31 @@ namespace TranzLog.Controllers
     [Route("[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly ITransportOrderRepository repo;
-        public OrderController(ITransportOrderRepository repo)
+        private readonly IOrderService orderService;
+        private readonly ILogger<OrderController> logger;
+        public OrderController(ITransportOrderRepository repo, ILogger<OrderController> logger, IOrderService orderService)
         {
-            this.repo = repo;
+            this.logger = logger;
+            this.orderService = orderService;
         }
         [HttpPost]
         public async Task<ActionResult<TransportOrderDTO>> AddOrderAsync(TransportOrderDTO orderDTO)
         {
             try
-            {
-                var createdOrder = await repo.AddAsync(orderDTO);
+            {                
+                var createdOrder = await orderService.CreateOrderAsync(orderDTO);
                 return Ok(createdOrder);
 
             }
+            catch (EntityNotFoundException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return StatusCode(404, ex.Message);
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpGet("{id}")]
@@ -32,29 +42,39 @@ namespace TranzLog.Controllers
         {
             try
             {
-                var order = await repo.GetAsync(id);
+                var order = await orderService.GetOrderAsync(id);
+                if (order == null)
+                    return NotFound($"Заказ с ID {id} не найден.");
                 return Ok(order);
             }
-            catch (ArgumentException ex)
+            catch (InvalidParameterException ex)
             {
+                logger.LogWarning(ex.Message);
                 return StatusCode(404, $"{ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpGet]
-        public ActionResult<IEnumerable<TransportOrderDTO>> GetAllOrder()
+        public ActionResult<IEnumerable<TransportOrderDTO>> GetAllOrder(int page = 1, int pageSize = 10)
         {
             try
             {
-                var list = repo.GetAll();
+                var list = orderService.GetAll(page, pageSize);
                 return Ok(list);
+            }
+            catch (ArgumentException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return StatusCode(404, $"Неверный запрос.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpDelete]
@@ -62,7 +82,7 @@ namespace TranzLog.Controllers
         {
             try
             {
-                await repo.DeleteAsync(id);
+                await orderService.DeleteAsync(id);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -71,7 +91,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpPut]
@@ -79,16 +100,23 @@ namespace TranzLog.Controllers
         {
             try
             {
-                var updateOrder = await repo.UpdateAsync(orderDTO);
+                var updateOrder = await orderService.UpdateOrderAsync(orderDTO);
                 return Ok(updateOrder);
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
+                logger.LogWarning(ex.Message);
+                return StatusCode(404, ex.Message);
+            }
+            catch (InvalidParameterException ex)
+            {
+                logger.LogWarning(ex.Message);
                 return StatusCode(404, $"{ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
     }

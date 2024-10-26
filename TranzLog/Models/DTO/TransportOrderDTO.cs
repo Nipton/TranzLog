@@ -5,7 +5,7 @@ namespace TranzLog.Models.DTO
     public class TransportOrderDTO
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         public int? ShipperId { get; set; }
         public int? ConsigneeId { get; set; }
         public int? RouteId { get; set; }

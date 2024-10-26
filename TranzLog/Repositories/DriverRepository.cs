@@ -59,21 +59,25 @@ namespace TranzLog.Repositories
             }
         }
 
-        public IEnumerable<DriverDTO> GetAll()
+        public IEnumerable<DriverDTO> GetAll(int page = 1, int pageSize = 10)
         {
-            if(cache.TryGetValue(CacheKeyPrefix, out IEnumerable<DriverDTO>? cacheList))
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
+            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<DriverDTO>? cacheList))
             {
                 if (cacheList != null)
                 {
-                    return cacheList;
+                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
                 }
             }
-            var drivers = db.Drivers.Select(x => mapper.Map<DriverDTO>(x)).ToList();
+            var drivers = db.Drivers.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<DriverDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, drivers, TimeSpan.FromMinutes(360));
             return drivers;
         }
 
-        public async Task<DriverDTO> GetAsync(int id)
+        public async Task<DriverDTO?> GetAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out DriverDTO? cachDriver))
@@ -92,7 +96,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Driver with ID {id} not found.");
+                return null;
             }
         }
 

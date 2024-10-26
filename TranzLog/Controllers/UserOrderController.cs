@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
 
@@ -21,7 +22,7 @@ namespace TranzLog.Controllers
         {
             try
             {
-                var orderId = await orderService.CreateOrder(userOrderDTO, HttpContext);
+                var orderId = await orderService.CreateOrderByUserAsync(userOrderDTO, HttpContext);
                 return Ok(orderId);
             }
             catch(ArgumentException ex) 
@@ -85,14 +86,14 @@ namespace TranzLog.Controllers
                 await orderService.CancelOrderAsync(orderId, HttpContext);
                 return Ok();
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                logger.LogError(ex.Message);
-                return BadRequest(ex.Message);
+                logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogWarning(ex.Message);
                 return StatusCode(403, ex.Message);
             }
             catch (Exception ex)

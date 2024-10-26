@@ -10,9 +10,11 @@ namespace TranzLog.Controllers
     public class ShippersController : ControllerBase
     {
         private readonly IRepository<ShipperDTO> shipperRepository;
-        public ShippersController(IRepository<ShipperDTO> shipperRepository) 
+        private readonly ILogger<ShippersController> logger;
+        public ShippersController(IRepository<ShipperDTO> shipperRepository, ILogger<ShippersController> logger) 
         {
             this.shipperRepository = shipperRepository;
+            this.logger = logger;
         }
         [HttpPost]
         public async Task<ActionResult<ShipperDTO>> AddShipperAsync(ShipperDTO shipperDTO)
@@ -24,7 +26,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpGet("{id}")]
@@ -32,15 +35,15 @@ namespace TranzLog.Controllers
         {
             try
             {
-                return await shipperRepository.GetAsync(id);
-            }
-            catch(ArgumentException ex)
-            {
-                return StatusCode(404, $"{ex.Message}");
+                var shipper = await shipperRepository.GetAsync(id);
+                if (shipper == null)
+                    return NotFound($"Отправитель с ID {id} не найден.");
+                return Ok(shipper);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpDelete]
@@ -57,7 +60,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpGet]
@@ -70,7 +74,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpPut]
@@ -87,7 +92,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
     }

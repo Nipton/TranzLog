@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -20,9 +22,17 @@ namespace TranzLog.Repositories
             this.mapper = mapper;
             this.cache = cache;
         }
-
+        private async Task ValidateRelatedEntitiesAsync(VehicleDTO entityDTO)
+        {
+            if (entityDTO.DriverId != null)
+            {
+                if (!await db.Drivers.AnyAsync(x => x.Id == entityDTO.DriverId))
+                    throw new EntityNotFoundException($"Водитель с ID {entityDTO.DriverId} не найден.");
+            }
+        }
         public async Task<VehicleDTO> AddAsync(VehicleDTO entityDTO)
         {
+            await ValidateRelatedEntitiesAsync(entityDTO);
             Vehicle vehicle = mapper.Map<Vehicle>(entityDTO);
             await db.Vehicles.AddRangeAsync(vehicle);
             await db.SaveChangesAsync();
@@ -32,6 +42,7 @@ namespace TranzLog.Repositories
 
         public async Task<VehicleDTO> UpdateAsync(VehicleDTO entityDTO)
         {
+            await ValidateRelatedEntitiesAsync(entityDTO);
             Vehicle? vehicle = await db.Vehicles.FindAsync(entityDTO.Id);
             if (vehicle != null)
             {
@@ -63,7 +74,7 @@ namespace TranzLog.Repositories
             }
         }
 
-        public async Task<VehicleDTO> GetAsync(int id)
+        public async Task<VehicleDTO?> GetAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out VehicleDTO? cacheResult))
@@ -82,20 +93,24 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Vehicle with ID {id} not found.");
+                return null;
             }
         }
 
-        public IEnumerable<VehicleDTO> GetAll()
+        public IEnumerable<VehicleDTO> GetAll(int page = 1, int pageSize = 10)
         {
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<VehicleDTO>? cacheList))
             {
                 if (cacheList != null)
                 {
-                    return cacheList;
+                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
                 }
             }
-            var vehicle = db.Vehicles.Select(x => mapper.Map<VehicleDTO>(x)).ToList();
+            var vehicle = db.Vehicles.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<VehicleDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, vehicle, TimeSpan.FromMinutes(360));
             return vehicle;
         }

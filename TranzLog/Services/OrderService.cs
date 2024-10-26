@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TranzLog.Data;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -18,8 +20,9 @@ namespace TranzLog.Services
         private readonly IRepository<CargoDTO> cargoRepo;
         private readonly IUserRepository userRepo;
         private readonly IRouteRepository routeRepo;
+        private readonly IRepository<VehicleDTO> vehicleRepo;
         private readonly IAuthenticationService authenticationService;
-        public OrderService(ShippingDbContext db, IMapper mapper, ITransportOrderRepository orderRepo, IRepository<ConsigneeDTO> consigneeRepo, IRepository<ShipperDTO> shipperRepo, IRepository<CargoDTO> cargoRepo, IUserRepository userRepo, IRouteRepository routeRepo, IAuthenticationService authenticationService)
+        public OrderService(ShippingDbContext db, IMapper mapper, ITransportOrderRepository orderRepo, IRepository<ConsigneeDTO> consigneeRepo, IRepository<ShipperDTO> shipperRepo, IRepository<CargoDTO> cargoRepo, IUserRepository userRepo, IRouteRepository routeRepo, IAuthenticationService authenticationService, IRepository<VehicleDTO> vehicleRepo)
         {
             this.mapper = mapper;
             this.orderRepo = orderRepo;
@@ -29,9 +32,63 @@ namespace TranzLog.Services
             this.userRepo = userRepo;
             this.routeRepo = routeRepo;
             this.authenticationService = authenticationService;
+            this.vehicleRepo = vehicleRepo;
             this.db = db;
         }
-        public async Task<string> CreateOrder(UserOrderDTO userOrderDTO, HttpContext httpContext)
+        
+        public async Task<TransportOrderDTO> CreateOrderAsync(TransportOrderDTO orderDTO)
+        {
+            await ValidateRelatedEntitiesAsync(orderDTO);
+            orderDTO.TrackNumber = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 12).ToUpper();
+            var order = await orderRepo.AddAsync(orderDTO);
+            return order;
+        }
+        public async Task<TransportOrderDTO> UpdateOrderAsync(TransportOrderDTO orderDTO)
+        {
+            await ValidateRelatedEntitiesAsync(orderDTO);
+            var order = await orderRepo.UpdateAsync(orderDTO);
+            return order;
+        }
+        public async Task<ActionResult<TransportOrderDTO?>> GetOrderAsync(int id)
+        {
+            var order = await orderRepo.GetAsync(id);
+            return order;
+        }
+        public IEnumerable<TransportOrderDTO> GetAll(int page, int pageSize)
+        {
+            var orders = orderRepo.GetAll(page, pageSize);
+            return orders;
+        }
+        public async Task DeleteAsync(int id)
+        {
+            await orderRepo.DeleteAsync(id);
+        }
+        private async Task ValidateRelatedEntitiesAsync(TransportOrderDTO orderDTO)
+        {
+            if (orderDTO.ConsigneeId != null)
+            {
+                var consignee = await consigneeRepo.GetAsync((int)orderDTO.ConsigneeId);
+                if (consignee == null)
+                    throw new EntityNotFoundException($"Получатель с ID {orderDTO.ConsigneeId} не найден.");
+            }
+            if (orderDTO.ShipperId != null)
+            {
+                var shipper = await shipperRepo.GetAsync((int)orderDTO.ShipperId);
+                if (shipper == null)
+                    throw new EntityNotFoundException($"Отправитель с ID {orderDTO.ShipperId} не найден.");
+            }
+            if (orderDTO.RouteId != null && !await routeRepo.RouteExistsAsync((int)orderDTO.RouteId))
+            {
+                throw new EntityNotFoundException($"Маршрут с ID {orderDTO.RouteId} не найден.");
+            }
+            if  (orderDTO.VehicleId != null)
+            {
+                var vehicle = await vehicleRepo.GetAsync((int) orderDTO.VehicleId);
+                if (vehicle == null)
+                    throw new EntityNotFoundException($"Транспорт с ID {orderDTO.VehicleId} не найден.");
+            }
+        }
+        public async Task<string> CreateOrderByUserAsync(UserOrderDTO userOrderDTO, HttpContext httpContext)
         {
             if (userOrderDTO.Consignee == null || userOrderDTO.Shipper == null || userOrderDTO.RouteId == null || userOrderDTO.CargoList.Count < 1)
             {
@@ -71,16 +128,6 @@ namespace TranzLog.Services
                 }
             }           
         }
-        //private async Task<UserDTO> GetCurrentUser(HttpContext httpContext)
-        //{
-        //    User? currentUser = authenticationService.GetCurrentUserInfo(httpContext);
-        //    if (currentUser == null)
-        //        throw new UnauthorizedAccessException("Ошибка аутентификации.");
-        //    var currentUserWithId = await userRepo.GetUserByNameAsync(currentUser.UserName);
-        //    if (currentUserWithId == null)
-        //        throw new UnauthorizedAccessException("Ошибка аутентификации.");
-        //    return currentUserWithId;
-        //}
         public async Task<UserOrderResponseDTO?> GetOrderInfoByTrackerAsync(string trackNumber)
         {
             TransportOrder? transportOrder = await orderRepo.GetOrderInfoByTrackerAsync(trackNumber);
@@ -101,6 +148,8 @@ namespace TranzLog.Services
         public async Task CancelOrderAsync(int orderId, HttpContext httpContext)
         {
             var order = await orderRepo.GetAsync(orderId);
+            if (order == null)
+                throw new EntityNotFoundException($"Заказ с ID {orderId} не найден.");
             var user = await authenticationService.GetCurrentUserAsync(httpContext);
             if (user.Id != order.UserId)
             {

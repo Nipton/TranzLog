@@ -63,7 +63,7 @@ namespace TranzLog.Repositories
             }
         }
 
-        public async Task<RouteDTO> GetAsync(int id)
+        public async Task<RouteDTO?> GetAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out RouteDTO? cacheResult))
@@ -82,20 +82,24 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Route with ID {id} not found.");
+                return null;
             }
         }
 
-        public IEnumerable<RouteDTO> GetAll()
+        public IEnumerable<RouteDTO> GetAll(int page = 1, int pageSize = 10)
         {
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<RouteDTO>? cacheList))
             {
                 if (cacheList != null)
                 {
-                    return cacheList;
+                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
                 }
             }
-            var route = db.Routes.Select(x => mapper.Map<RouteDTO>(x)).ToList();
+            var route = db.Routes.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<RouteDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, route, TimeSpan.FromMinutes(360));
             return route;
         }

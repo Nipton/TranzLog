@@ -7,10 +7,9 @@ namespace TranzLog.Models
     public class TransportOrder
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         public virtual Shipper? Shipper { get; set; }
         public int? ShipperId { get; set; }
-        [Required]
         public virtual Consignee? Consignee { get; set; }
         public int? ConsigneeId { get; set; }
 

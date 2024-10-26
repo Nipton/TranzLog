@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TranzLog.Data;
 
@@ -11,9 +12,11 @@ using TranzLog.Data;
 namespace TranzLog.Migrations
 {
     [DbContext(typeof(ShippingDbContext))]
-    partial class ShippingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241026075650_ChangesFieldOrder")]
+    partial class ChangesFieldOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,6 +217,7 @@ namespace TranzLog.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<int?>("ConsigneeId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -356,7 +360,9 @@ namespace TranzLog.Migrations
                 {
                     b.HasOne("TranzLog.Models.Consignee", "Consignee")
                         .WithMany("TransportOrders")
-                        .HasForeignKey("ConsigneeId");
+                        .HasForeignKey("ConsigneeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("TranzLog.Models.Route", "Route")
                         .WithMany()

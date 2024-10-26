@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
 using TranzLog.Interfaces;
@@ -45,19 +46,23 @@ namespace TranzLog.Repositories
             }           
         }
 
-        public IEnumerable<ShipperDTO> GetAll()
+        public IEnumerable<ShipperDTO> GetAll(int page = 1, int pageSize = 10)
         {
+            if (page < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+            }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<ShipperDTO>? cacheList))
             {
                 if(cacheList != null)
-                    return cacheList;
+                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
             }
-            var shippers = db.Shippers.Select(x => mapper.Map<ShipperDTO>(x)).ToList();
+            var shippers = db.Shippers.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<ShipperDTO>(x)).ToList();
             cache.Set(CacheKeyPrefix, shippers, TimeSpan.FromMinutes(360));
             return shippers;
         }
 
-        public async Task<ShipperDTO> GetAsync(int id)
+        public async Task<ShipperDTO?> GetAsync(int id)
         {
             string cacheKey = CacheKeyPrefix + id;
             if (cache.TryGetValue(cacheKey, out ShipperDTO? cacheResult))
@@ -76,7 +81,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Shipper with ID {id} not found.");
+                return null;
             }
         }
 

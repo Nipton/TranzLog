@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
+using TranzLog.Models;
 using TranzLog.Models.DTO;
 
 namespace TranzLog.Controllers
@@ -9,9 +12,11 @@ namespace TranzLog.Controllers
     public class VehicleController : ControllerBase
     {
         private readonly IRepository<VehicleDTO> repo;
-        public VehicleController(IRepository<VehicleDTO> repo)
+        private readonly ILogger<VehicleController> logger;
+        public VehicleController(IRepository<VehicleDTO> repo, ILogger<VehicleController> logger)
         {
             this.repo = repo;
+            this.logger = logger;
         }
         [HttpPost]
         public async Task<ActionResult<VehicleDTO>> AddVehicleAsync(VehicleDTO vehicleDTO)
@@ -22,9 +27,15 @@ namespace TranzLog.Controllers
                 return Ok(createdVehicle);
 
             }
+            catch (EntityNotFoundException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return StatusCode(404, ex.Message);
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpGet("{id}")]
@@ -33,15 +44,14 @@ namespace TranzLog.Controllers
             try
             {
                 var vehicle = await repo.GetAsync(id);
+                if (vehicle == null)
+                    return NotFound($"Транспорт с ID {id} не найден.");
                 return Ok(vehicle);
-            }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(404, $"{ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpGet]
@@ -54,7 +64,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpDelete]
@@ -71,7 +82,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
         [HttpPut]
@@ -82,13 +94,19 @@ namespace TranzLog.Controllers
                 var updateVehicle = await repo.UpdateAsync(vehicleDTO);
                 return Ok(updateVehicle);
             }
+            catch (EntityNotFoundException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return StatusCode(404, ex.Message);
+            }
             catch (ArgumentException ex)
             {
                 return StatusCode(404, $"{ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                logger.LogError(ex.Message);
+                return StatusCode(500, $"Internal server error");
             }
         }
     }

@@ -51,22 +51,27 @@ namespace TranzLog.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex.Message);
                 return StatusCode(401, "Ошибка аутентификации.");
             }
             catch (AccessDeniedException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex.Message);
                 return StatusCode(403, ex.Message);
+            }
+            catch(EntityNotFoundException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex.Message);
                 return StatusCode(400, ex.Message);
             }
             catch (UserNotFoundException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex.Message);
                 return StatusCode(404, ex.Message);
             }
             catch (Exception ex)
