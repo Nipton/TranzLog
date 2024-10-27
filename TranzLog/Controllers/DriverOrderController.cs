@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -8,6 +9,7 @@ namespace TranzLog.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Administrator, Driver")]
     public class DriverOrderController : ControllerBase
     {
         private readonly IDriverOrderService orderService;

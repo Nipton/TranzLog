@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
@@ -6,7 +7,8 @@ using TranzLog.Models.DTO;
 namespace TranzLog.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Manager")]
     public class ConsigneeController : ControllerBase
     {
         private readonly IRepository<ConsigneeDTO> repo;

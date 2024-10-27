@@ -9,7 +9,8 @@ using TranzLog.Models.DTO;
 namespace TranzLog.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Manager")]
     public class CargoController : ControllerBase
     {
         private readonly IRepository<CargoDTO> repo;
@@ -61,7 +62,6 @@ namespace TranzLog.Controllers
             }
         }
         [HttpGet]
-        [Authorize(Roles = "Administrator, Manager")]
         public ActionResult<IEnumerable<CargoDTO>> GetAllCargo(int page = 1, int pageSize = 10)
         {
             try

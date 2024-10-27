@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -9,7 +10,8 @@ using TranzLog.Repositories;
 namespace TranzLog.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Manager")]
     public class DriverController : ControllerBase
     {
         private readonly IDriverRepository repo;

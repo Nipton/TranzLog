@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
@@ -12,8 +13,9 @@ using TranzLog.Services;
 
 namespace TranzLog.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Administrator, Manager")]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository repo;

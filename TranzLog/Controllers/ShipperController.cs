@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
@@ -8,6 +9,7 @@ namespace TranzLog.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Manager")]
     public class ShippersController : ControllerBase
     {
         private readonly IRepository<ShipperDTO> repo;

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -8,6 +9,7 @@ namespace TranzLog.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserOrderController : ControllerBase
     {
         private readonly IOrderService orderService;
@@ -47,6 +49,7 @@ namespace TranzLog.Controllers
             }
         }
         [HttpGet("tracker-search")]
+        [AllowAnonymous]
         public async Task<ActionResult<UserOrderResponseDTO>> GetOrderByTracker(string trackNumber)
         {
             if (string.IsNullOrEmpty(trackNumber))

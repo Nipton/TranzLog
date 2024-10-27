@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -9,6 +10,7 @@ namespace TranzLog.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Administrator, Manager")]
     public class ManagerOrderController : ControllerBase
     {
         private readonly IManagerOrderService managerOrderService;
