@@ -21,8 +21,12 @@ namespace TranzLog.Controllers
         }
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ActionResult> Login(LoginDTO userDTO)
+        public async Task<ActionResult<string>> Login(LoginDTO userDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Некорректные данные для входа.");
+            }
             try
             {
                 string token = await authenticationService.AuthenticateAsync(userDTO);
@@ -39,13 +43,17 @@ namespace TranzLog.Controllers
             catch (Exception ex)
             {
                 logger.LogError($"Ошибка во время аутентификации пользователя {userDTO.UserName}: {ex}");
-                return StatusCode(500, "Internal server error");
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDTO registerDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Некорректные данные для регистрации.");
+            }
             try
             {
                 var reusltRegister = await authenticationService.RegisterAsync(registerDTO);
@@ -55,13 +63,13 @@ namespace TranzLog.Controllers
                 }
                 else
                 {
-                    return StatusCode(409, reusltRegister.Message);
+                    return Conflict(reusltRegister.Message);
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError($"Ошибка во время регистрации пользователя {registerDTO.UserName}: {ex}");
-                return StatusCode(500, "Internal server error");
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

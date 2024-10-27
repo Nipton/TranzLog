@@ -35,51 +35,56 @@ namespace TranzLog.Controllers
             }
             catch (UserNotFoundException ex)
             {
-                logger.LogInformation(ex.Message);
-                return StatusCode(404, ex.Message);
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (DuplicateException ex)
             {
-                logger.LogInformation(ex.Message);
-                return StatusCode(404, ex.Message);
+                logger.LogWarning(ex, ex.Message);
+                return Conflict($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteUser(int id)
         {
             try
             {
                 await repo.DeleteUserAsync(id);
-                return Ok();
+                return NoContent();
             }
             catch (UserNotFoundException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex, ex.Message);
                 return StatusCode(404, ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
-        public ActionResult<IEnumerable<UserDTO>> GetAllUsers()
+        public ActionResult<IEnumerable<UserDTO>> GetAllUsers(int page = 1, int pageSize = 10)
         {
             try
             {
                 var users = repo.GetAllUsers();
                 return Ok(users);
             }
+            catch (InvalidPaginationParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("check-{userName}")]
@@ -92,8 +97,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("find-{userName}")]
@@ -103,13 +108,13 @@ namespace TranzLog.Controllers
             {
                 var user = await repo.GetUserByNameAsync(userName);
                 if (user == null)
-                    return StatusCode(404, $"Пользователь {userName} не найден");
+                    return NotFound($"Пользователь {userName} не найден");
                 return Ok(user);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("{id}")]
@@ -119,13 +124,13 @@ namespace TranzLog.Controllers
             {
                 var user = await repo.GetUserByIdAsync(id);
                 if (user == null)
-                    return StatusCode(404, $"Пользователь с ID {id} не найден");
+                    return NotFound($"Пользователь с ID {id} не найден");
                 return Ok(user);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPatch]
@@ -143,29 +148,28 @@ namespace TranzLog.Controllers
             }
             catch (UserNotFoundException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex, ex.Message);
                 return StatusCode(404, ex.Message);
             }
             catch (InvalidRoleException ex)
             {
-                logger.LogInformation(ex.Message);
-                return StatusCode(400, ex.Message);
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                logger.LogInformation(ex.Message);
+                logger.LogWarning(ex, ex.Message);
                 return StatusCode(403, ex.Message);
             }
-            catch (ArgumentException ex)
+            catch (InvalidParameterException ex)
             {
-                logger.LogInformation(ex.Message);
-                return StatusCode(401, ex.Message);
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
-
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

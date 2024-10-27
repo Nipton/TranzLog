@@ -55,7 +55,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Driver with ID {id} not found.");
+                throw new EntityNotFoundException($"Driver with ID {id} not found.");
             }
         }
 
@@ -63,7 +63,7 @@ namespace TranzLog.Repositories
         {
             if (page < 1 || pageSize < 1)
             {
-                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+                throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<DriverDTO>? cacheList))
             {
@@ -104,9 +104,7 @@ namespace TranzLog.Repositories
         {
             Driver? driver = await db.Drivers.FindAsync(entityDTO.Id);
             if (driver == null)
-            {
-                throw new ArgumentException($"Driver with ID {entityDTO} not found.");
-            }
+                throw new EntityNotFoundException($"Driver with ID {entityDTO} not found.");
             if (driver.UserId != null)
             {
                 var user = await db.Users.FindAsync(driver.UserId);

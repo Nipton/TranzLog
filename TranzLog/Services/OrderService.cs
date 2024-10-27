@@ -92,10 +92,10 @@ namespace TranzLog.Services
         {
             if (userOrderDTO.Consignee == null || userOrderDTO.Shipper == null || userOrderDTO.RouteId == null || userOrderDTO.CargoList.Count < 1)
             {
-                throw new ArgumentException("Неполные данные для создания заказа.");
+                throw new InvalidParameterException("Неполные данные для создания заказа.");
             }
             if(!await routeRepo.RouteExistsAsync((int)userOrderDTO.RouteId))
-                throw new ArgumentException("Несуществующий путь.");
+                throw new EntityNotFoundException("Несуществующий путь.");
             TransportOrderDTO order = new TransportOrderDTO();
             var currentUserWithId = await authenticationService.GetCurrentUserAsync(httpContext);
             order.UserId = currentUserWithId.Id;

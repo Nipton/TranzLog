@@ -54,7 +54,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Vehicle with ID {entityDTO} not found.");
+                throw new EntityNotFoundException($"Vehicle with ID {entityDTO} not found.");
             }
         }
 
@@ -70,7 +70,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Vehicle with ID {id} not found.");
+                throw new EntityNotFoundException($"Vehicle with ID {id} not found.");
             }
         }
 
@@ -101,7 +101,7 @@ namespace TranzLog.Repositories
         {
             if (page < 1 || pageSize < 1)
             {
-                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+                throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<VehicleDTO>? cacheList))
             {

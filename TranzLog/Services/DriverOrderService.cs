@@ -38,11 +38,11 @@ namespace TranzLog.Services
         {
             if (!Enum.IsDefined(typeof(OrderStatus), newStatus))
             {
-                throw new ArgumentException("Недопустимый статус заказа.");
+                throw new InvalidParameterException("Недопустимый статус заказа.");
             }
             var orderStatus = (OrderStatus)newStatus;
             if (!(orderStatus == OrderStatus.AcceptedByDriver || orderStatus == OrderStatus.Cancelled))
-                throw new AccessDeniedException("Статус заказа можно изменить только на 'AcceptedByDriver' или 'Cancelled'");
+                throw new InvalidParameterException("Статус заказа можно изменить только на 'AcceptedByDriver' или 'Cancelled'");
 
             var currentUser = await authenticationService.GetCurrentUserAsync(httpContext);
             var driver = await driverRepository.FindDriverByUserIdAsync(currentUser.Id);

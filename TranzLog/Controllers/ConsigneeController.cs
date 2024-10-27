@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
 
@@ -23,10 +24,15 @@ namespace TranzLog.Controllers
                 var createdConsignee = await repo.AddAsync(consignee);
                 return Ok(createdConsignee);
             }
+            catch (ArgumentException ex)
+            {
+                logger.LogWarning(ex, "Некорректные данные.");
+                return BadRequest("Некорректные данные.");
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("{id}")]
@@ -41,8 +47,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
@@ -53,13 +59,18 @@ namespace TranzLog.Controllers
                 var list = repo.GetAll();
                 return Ok(list);
             }
+            catch (InvalidPaginationParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteConsignee(int id)
         {
             try
@@ -67,14 +78,15 @@ namespace TranzLog.Controllers
                 await repo.DeleteAsync(id);
                 return Ok();
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPut]
@@ -82,16 +94,18 @@ namespace TranzLog.Controllers
         {
             try
             {
-                return await repo.UpdateAsync(consignee);
+                var updatedConsignee = await repo.UpdateAsync(consignee);
+                return Ok(updatedConsignee);
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -27,7 +28,7 @@ namespace TranzLog.Services
         {
             if (!Enum.IsDefined(typeof(OrderStatus), newStatus))
             {
-                throw new ArgumentException("Недопустимый статус заказа.");
+                throw new InvalidParameterException("Недопустимый статус заказа.");
             }
             var orderStatus = (OrderStatus)newStatus;
             await orderRepo.UpdateOrderStatusAsync(orderId, orderStatus);

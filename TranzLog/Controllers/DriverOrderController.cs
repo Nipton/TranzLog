@@ -37,11 +37,11 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpPatch]
+        [HttpPatch("{orderId}/status")]
         public async Task<ActionResult> UpdateOrderDeliveryStatus(int orderId, int newStatus)
         {
             try
@@ -64,20 +64,20 @@ namespace TranzLog.Controllers
                 logger.LogWarning(ex.Message);
                 return NotFound(ex.Message);
             }
-            catch (ArgumentException ex)
+            catch (InvalidParameterException ex)
             {
                 logger.LogWarning(ex.Message);
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (UserNotFoundException ex)
             {
                 logger.LogWarning(ex.Message);
-                return StatusCode(404, ex.Message);
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

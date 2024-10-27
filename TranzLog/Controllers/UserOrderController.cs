@@ -25,20 +25,25 @@ namespace TranzLog.Controllers
                 var orderId = await orderService.CreateOrderByUserAsync(userOrderDTO, HttpContext);
                 return Ok(orderId);
             }
-            catch(ArgumentException ex) 
+            catch(InvalidParameterException ex) 
             {
-                logger.LogError(ex.Message);
+                logger.LogWarning(ex, ex.Message);
                 return BadRequest("Неполные данные для создания заказа.");
             }
-            catch(UnauthorizedAccessException ex)
+            catch (EntityNotFoundException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
                 return StatusCode(401, "Ошибка аутентификации.");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogWarning(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("tracker-search")]
@@ -53,10 +58,15 @@ namespace TranzLog.Controllers
                     return Ok(order);
                 return BadRequest("Указанный трек-номер не найден.");
             }
+            catch (InvalidParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest($"{ex.Message}");
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
@@ -74,8 +84,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPatch]
@@ -98,8 +108,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

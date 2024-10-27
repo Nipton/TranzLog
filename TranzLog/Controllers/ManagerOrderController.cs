@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -27,11 +28,11 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpPatch("/api/orders/{orderId}/status")]
+        [HttpPatch("{orderId}/status")]
         public async Task<ActionResult> UpdateOrderStatus(int orderId, int newStatus)
         {
             try
@@ -39,15 +40,20 @@ namespace TranzLog.Controllers
                 await managerOrderService.UpdateOrderStatusAsync(orderId, newStatus);
                 return Ok("Статус заказа успешно обновлен.");
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
+            }
+            catch (InvalidParameterException ex)
+            {
+                logger.LogWarning(ex.Message);
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

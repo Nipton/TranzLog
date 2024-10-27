@@ -18,7 +18,7 @@ namespace TranzLog.Models
 
         public virtual Vehicle? Vehicle { get; set; }
         public int? VehicleId { get; set; }
-        public virtual List<Cargo>? Cargo { get; set; }
+        public virtual List<Cargo> Cargo { get; set; } = new List<Cargo>();
         public DateTime? CreatedAt { get; set; }
         public DateTime? CompletionTime { get; set; }
         public DateTime? StartTransportTime { get; set; } 

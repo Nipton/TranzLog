@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -41,7 +42,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Consignee with ID {id} not found.");
+                throw new EntityNotFoundException($"Consignee with ID {id} not found.");
             }          
         }
 
@@ -49,7 +50,7 @@ namespace TranzLog.Repositories
         {
             if (page < 1 || pageSize < 1)
             {
-                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+                throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<ConsigneeDTO>? result))
             {
@@ -97,7 +98,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Consignee with ID {entityDTO.Id} not found.");
+                throw new EntityNotFoundException($"Consignee with ID {entityDTO.Id} not found.");
             }
         }
     }

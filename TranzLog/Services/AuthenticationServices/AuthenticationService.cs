@@ -62,7 +62,7 @@ namespace TranzLog.Services.AuthenticationServices
         {
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(targetRole) || string.IsNullOrEmpty(roleCurrentUser))
             {
-                throw new ArgumentException("Параметры не могут быть пустыми.");
+                throw new InvalidParameterException("Параметры не могут быть пустыми.");
             }
             User? targetUser = await repo.GetUserEntityByNameAsync(userName);
             if (targetUser == null)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models.DTO;
 using TranzLog.Repositories;
@@ -6,14 +7,14 @@ using TranzLog.Repositories;
 namespace TranzLog.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ShippersController : ControllerBase
     {
-        private readonly IRepository<ShipperDTO> shipperRepository;
+        private readonly IRepository<ShipperDTO> repo;
         private readonly ILogger<ShippersController> logger;
         public ShippersController(IRepository<ShipperDTO> shipperRepository, ILogger<ShippersController> logger) 
         {
-            this.shipperRepository = shipperRepository;
+            this.repo = shipperRepository;
             this.logger = logger;
         }
         [HttpPost]
@@ -21,13 +22,18 @@ namespace TranzLog.Controllers
         {
             try
             {
-                var createdShipper = await shipperRepository.AddAsync(shipperDTO);
+                var createdShipper = await repo.AddAsync(shipperDTO);
                 return Ok(createdShipper);
+            }
+            catch (ArgumentException ex)
+            {
+                logger.LogWarning(ex, "Некорректные данные.");
+                return BadRequest("Некорректные данные.");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("{id}")]
@@ -35,47 +41,53 @@ namespace TranzLog.Controllers
         {
             try
             {
-                var shipper = await shipperRepository.GetAsync(id);
+                var shipper = await repo.GetAsync(id);
                 if (shipper == null)
                     return NotFound($"Отправитель с ID {id} не найден.");
                 return Ok(shipper);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteShipperAsync(int id)
         {
             try
             {
-                await shipperRepository.DeleteAsync(id);
-                return Ok();
+                await repo.DeleteAsync(id);
+                return NoContent();
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
-        public ActionResult<IEnumerable<ShipperDTO>> GetAllShippers()
+        public ActionResult<IEnumerable<ShipperDTO>> GetAllShippers(int page = 1, int pageSize = 10)
         {
             try
             {
-                var shippers = shipperRepository.GetAll();
+                var shippers = repo.GetAll();
                 return Ok(shippers);
+            }
+            catch (InvalidPaginationParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPut]
@@ -83,17 +95,18 @@ namespace TranzLog.Controllers
         {
             try
             {
-                var updateShipper = await shipperRepository.UpdateAsync(shipperDTO);
+                var updateShipper = await repo.UpdateAsync(shipperDTO);
                 return Ok(updateShipper);
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

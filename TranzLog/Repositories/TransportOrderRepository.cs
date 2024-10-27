@@ -44,7 +44,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new InvalidParameterException($"Order with ID {entityDTO} not found.");
+                throw new EntityNotFoundException($"Order with ID {entityDTO} not found.");
             }
         }
 
@@ -60,7 +60,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Order with ID {id} not found.");
+                throw new EntityNotFoundException($"Order with ID {id} not found.");
             }
         }
 
@@ -93,7 +93,7 @@ namespace TranzLog.Repositories
         {
             if (page < 1 || pageSize < 1)
             {
-                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+                throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<TransportOrderDTO>? cacheList))
             {
@@ -102,7 +102,22 @@ namespace TranzLog.Repositories
                     return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
                 }
             }
-            var order = db.TransportOrders.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<TransportOrderDTO>(x)).ToList();
+            var order = db.TransportOrders.Skip((page - 1) * pageSize).Take(pageSize).Select(order => new TransportOrderDTO
+            {
+                Id = order.Id,
+                UserId = order.UserId,
+                ShipperId = order.ShipperId,
+                ConsigneeId = order.ConsigneeId,
+                RouteId = order.RouteId,
+                VehicleId = order.VehicleId,
+                CreatedAt = order.CreatedAt,
+                CompletionTime = order.CompletionTime,
+                StartTransportTime = order.StartTransportTime,
+                PlannedDeliveryTime = order.PlannedDeliveryTime,
+                Notes = order.Notes,
+                OrderStatus = order.OrderStatus,
+                TrackNumber = order.TrackNumber
+            }).ToList();
             cache.Set(CacheKeyPrefix, order, TimeSpan.FromMinutes(360));
             return order;
         }
@@ -111,7 +126,7 @@ namespace TranzLog.Repositories
         {
             if (string.IsNullOrEmpty(trackNumber))
             {
-                throw new ArgumentException("Не указан трек-номер");
+                throw new InvalidParameterException("Не указан трек-номер");
             }
             TransportOrder? transportOrder = await db.TransportOrders.FirstOrDefaultAsync(order => order.TrackNumber == trackNumber);
             return transportOrder;
@@ -120,7 +135,7 @@ namespace TranzLog.Repositories
         public async Task<List<TransportOrder>> GetUserOrdersByIdAsync(int userId)
         {
             if (userId <= 0)
-                throw new ArgumentException($"Передано некорректное значение ID: {userId}");
+                throw new InvalidParameterException($"Передано некорректное значение ID: {userId}");
             var orders = await db.TransportOrders.Where(order => order.UserId == userId).ToListAsync();
             return orders;
         }
@@ -134,7 +149,7 @@ namespace TranzLog.Repositories
         {
             var order = await db.TransportOrders.FindAsync(orderId);
             if (order == null)
-                throw new ArgumentException($"Заказ с ID {orderId} не найден.");
+                throw new EntityNotFoundException($"Заказ с ID {orderId} не найден.");
             order.OrderStatus = newStatus;
             if (newStatus == OrderStatus.Completed)
                 order.CompletionTime = DateTime.UtcNow;

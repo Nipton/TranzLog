@@ -142,7 +142,7 @@ namespace TranzLog.Repositories
         {
             if (page < 1 || pageSize < 1)
             {
-                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+                throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<UserDTO>? cacheList))
             {

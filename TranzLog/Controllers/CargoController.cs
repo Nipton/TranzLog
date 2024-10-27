@@ -31,12 +31,17 @@ namespace TranzLog.Controllers
             catch (EntityNotFoundException ex)
             {
                 logger.LogWarning(ex.Message);
-                return StatusCode(404, ex.Message);
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                logger.LogWarning(ex, "Некорректные данные.");
+                return BadRequest("Некорректные данные.");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("{id}")]
@@ -51,41 +56,47 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
         [Authorize(Roles = "Administrator, Manager")]
-        public ActionResult<IEnumerable<CargoDTO>> GetAllCargo()
+        public ActionResult<IEnumerable<CargoDTO>> GetAllCargo(int page = 1, int pageSize = 10)
         {
             try
             {
                 var list = repo.GetAll();
                 return Ok(list);
             }
+            catch (InvalidPaginationParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteCargo(int id)
         {
             try
             {
                 await repo.DeleteAsync(id);
-                return Ok();
+                return NoContent();
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPut]
@@ -99,16 +110,12 @@ namespace TranzLog.Controllers
             catch (EntityNotFoundException ex)
             {
                 logger.LogWarning(ex.Message);
-                return StatusCode(404, ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(404, $"{ex.Message}");
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

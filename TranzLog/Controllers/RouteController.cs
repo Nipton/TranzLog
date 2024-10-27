@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -21,16 +22,20 @@ namespace TranzLog.Controllers
         public async Task<ActionResult<RouteDTO>> AddRouteAsync(RouteDTO routeDTO)
         {
             try
-            {
-                
+            {               
                 var createdRoute = await repo.AddAsync(routeDTO);
                 return Ok(createdRoute);
 
             }
+            catch (ArgumentException ex)
+            {
+                logger.LogWarning(ex, "Некорректные данные.");
+                return BadRequest("Некорректные данные.");
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("{id}")]
@@ -45,58 +50,65 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
-        public ActionResult<IEnumerable<RouteDTO>> GetAllRoute()
+        public ActionResult<IEnumerable<RouteDTO>> GetAllRoute(int page = 1, int pageSize = 10)
         {
             try
             {
                 var list = repo.GetAll();
                 return Ok(list);
             }
+            catch (InvalidPaginationParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteRoute(int id)
         {
             try
             {
                 await repo.DeleteAsync(id);
-                return Ok();
+                return NoContent();
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPut]
-        public async Task<ActionResult<RouteDTO>> UpdateCargo(RouteDTO routeDTO)
+        public async Task<ActionResult<RouteDTO>> UpdateRoute(RouteDTO routeDTO)
         {
             try
             {
                 var updateRoute = await repo.UpdateAsync(routeDTO);
                 return Ok(updateRoute);
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("search")]
@@ -111,8 +123,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }

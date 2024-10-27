@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
 using TranzLog.Data;
+using TranzLog.Exceptions;
 using TranzLog.Interfaces;
 using TranzLog.Models;
 using TranzLog.Models.DTO;
@@ -42,7 +43,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Shipper with ID {id} not found.");
+                throw new EntityNotFoundException($"Shipper with ID {id} not found.");
             }           
         }
 
@@ -50,7 +51,7 @@ namespace TranzLog.Repositories
         {
             if (page < 1 || pageSize < 1)
             {
-                throw new ArgumentException("Параметры page и pageSize должны быть больше нуля.");
+                throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
             if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<ShipperDTO>? cacheList))
             {
@@ -98,7 +99,7 @@ namespace TranzLog.Repositories
             }
             else
             {
-                throw new ArgumentException($"Shipper with ID {entity.Id} not found.");
+                throw new EntityNotFoundException($"Shipper with ID {entity.Id} not found.");
             }           
         }
     }

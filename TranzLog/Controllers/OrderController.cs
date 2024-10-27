@@ -33,8 +33,8 @@ namespace TranzLog.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet("{id}")]
@@ -49,13 +49,13 @@ namespace TranzLog.Controllers
             }
             catch (InvalidParameterException ex)
             {
-                logger.LogWarning(ex.Message);
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpGet]
@@ -66,33 +66,34 @@ namespace TranzLog.Controllers
                 var list = orderService.GetAll(page, pageSize);
                 return Ok(list);
             }
-            catch (ArgumentException ex)
+            catch (InvalidPaginationParameterException ex)
             {
-                logger.LogWarning(ex.Message);
-                return StatusCode(404, $"Неверный запрос.");
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteOrder(int id)
         {
             try
             {
                 await orderService.DeleteAsync(id);
-                return Ok();
+                return NoContent();
             }
-            catch (ArgumentException ex)
+            catch (EntityNotFoundException ex)
             {
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
         [HttpPut]
@@ -105,18 +106,13 @@ namespace TranzLog.Controllers
             }
             catch (EntityNotFoundException ex)
             {
-                logger.LogWarning(ex.Message);
-                return StatusCode(404, ex.Message);
-            }
-            catch (InvalidParameterException ex)
-            {
-                logger.LogWarning(ex.Message);
-                return StatusCode(404, $"{ex.Message}");
+                logger.LogWarning(ex, ex.Message);
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
-                return StatusCode(500, $"Internal server error");
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
             }
         }
     }
