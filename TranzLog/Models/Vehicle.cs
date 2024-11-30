@@ -15,7 +15,7 @@ namespace TranzLog.Models
         public string Model { get; set; } = "";
 
         [Required]
-        public int Capacity { get; set; }
+        public double Capacity { get; set; }
 
         public virtual Driver? Driver { get; set; }
         public int? DriverId { get; set; }

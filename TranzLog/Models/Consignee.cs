@@ -5,7 +5,6 @@ namespace TranzLog.Models
     public class Consignee
     {
         public int Id { get; set; }
-        [Required]
         [MaxLength(50)]
         public string CompanyName { get; set; } = "";
         [Required]

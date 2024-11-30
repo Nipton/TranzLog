@@ -20,7 +20,7 @@ namespace TranzLog.Controllers
             this.logger = logger;
         }
         [HttpPost]
-        public async Task<ActionResult<string>> CreateOrder(UserOrderDTO userOrderDTO)
+        public async Task<ActionResult<string>> CreateOrder(UserOrderRequestDTO userOrderDTO)
         {
             try
             {

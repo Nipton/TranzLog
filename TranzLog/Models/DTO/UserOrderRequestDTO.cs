@@ -2,7 +2,7 @@
 
 namespace TranzLog.Models.DTO
 {
-    public class UserOrderDTO
+    public class UserOrderRequestDTO
     {
         public ShipperDTO? Shipper { get; set; }
         public ConsigneeDTO? Consignee { get; set; }

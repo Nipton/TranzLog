@@ -88,7 +88,7 @@ namespace TranzLog.Services
                     throw new EntityNotFoundException($"Транспорт с ID {orderDTO.VehicleId} не найден.");
             }
         }
-        public async Task<string> CreateOrderByUserAsync(UserOrderDTO userOrderDTO, HttpContext httpContext)
+        public async Task<string> CreateOrderByUserAsync(UserOrderRequestDTO userOrderDTO, HttpContext httpContext)
         {
             if (userOrderDTO.Consignee == null || userOrderDTO.Shipper == null || userOrderDTO.RouteId == null || userOrderDTO.CargoList.Count < 1)
             {

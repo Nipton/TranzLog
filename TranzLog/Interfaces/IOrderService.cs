@@ -5,7 +5,7 @@ namespace TranzLog.Interfaces
 {
     public interface IOrderService
     {
-        Task<string> CreateOrderByUserAsync(UserOrderDTO userOrderDTO, HttpContext httpContext);
+        Task<string> CreateOrderByUserAsync(UserOrderRequestDTO userOrderDTO, HttpContext httpContext);
         Task<UserOrderResponseDTO?> GetOrderInfoByTrackerAsync(string trackNumber);
         Task<List<UserOrderResponseDTO>> GetUserOrdersAsync(HttpContext httpContext);
         Task CancelOrderAsync(int orderId, HttpContext httpContext);
