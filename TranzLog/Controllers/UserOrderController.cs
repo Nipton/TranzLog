@@ -59,7 +59,7 @@ namespace TranzLog.Controllers
                 var order = await orderService.GetOrderInfoByTrackerAsync(trackNumber);
                 if (order != null)
                     return Ok(order);
-                return BadRequest("Указанный трек-номер не найден.");
+                return NotFound("Указанный трек-номер не найден.");
             }
             catch (InvalidParameterException ex)
             {

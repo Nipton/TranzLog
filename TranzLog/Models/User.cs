@@ -19,6 +19,5 @@ namespace TranzLog.Models
         [Required]
         public byte[] Password { get; set; } = null!;
         public byte[] Salt { get; set; } = null!;
-       
     }
 }

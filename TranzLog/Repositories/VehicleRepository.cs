@@ -15,6 +15,7 @@ namespace TranzLog.Repositories
         private readonly IMapper mapper;
         private IMemoryCache cache;
         private const string CacheKeyPrefix = "vehicle_";
+        private static int CacheVersion = 0;
 
         public VehicleRepository(ShippingDbContext db, IMapper mapper, IMemoryCache cache)
         {
@@ -36,7 +37,7 @@ namespace TranzLog.Repositories
             Vehicle vehicle = mapper.Map<Vehicle>(entityDTO);
             await db.Vehicles.AddRangeAsync(vehicle);
             await db.SaveChangesAsync();
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<VehicleDTO>(vehicle);
         }
 
@@ -50,11 +51,12 @@ namespace TranzLog.Repositories
                 await db.SaveChangesAsync();
                 string cacheKey = CacheKeyPrefix + entityDTO.Id;
                 cache.Set(cacheKey, entityDTO, TimeSpan.FromMinutes(360));
+                Interlocked.Increment(ref CacheVersion);
                 return mapper.Map<VehicleDTO>(vehicle);
             }
             else
             {
-                throw new EntityNotFoundException($"Vehicle with ID {entityDTO} not found.");
+                throw new EntityNotFoundException($"Транспорт с ID {entityDTO} не найден.");
             }
         }
 
@@ -66,11 +68,11 @@ namespace TranzLog.Repositories
                 db.Vehicles.Remove(vehicle);
                 await db.SaveChangesAsync();
                 cache.Remove(CacheKeyPrefix + id);
-                cache.Remove(CacheKeyPrefix);
+                Interlocked.Increment(ref CacheVersion);
             }
             else
             {
-                throw new EntityNotFoundException($"Vehicle with ID {id} not found.");
+                throw new EntityNotFoundException($"Транспорт с ID {id} не найден.");
             }
         }
 
@@ -103,15 +105,21 @@ namespace TranzLog.Repositories
             {
                 throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
-            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<VehicleDTO>? cacheList))
+            var cacheKey = $"{CacheKeyPrefix}_V{CacheVersion}_Page{page}_Size{pageSize}";
+
+            if (cache.TryGetValue(cacheKey, out IEnumerable<VehicleDTO>? cachedPage))
             {
-                if (cacheList != null)
-                {
-                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
-                }
+                if (cachedPage != null)
+                    return cachedPage;
             }
-            var vehicle = db.Vehicles.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<VehicleDTO>(x)).ToList();
-            cache.Set(CacheKeyPrefix, vehicle, TimeSpan.FromMinutes(360));
+            var query = db.Vehicles.Skip((page - 1) * pageSize).Take(pageSize);
+
+            if (!query.Any())
+            {
+                throw new InvalidParameterException("Указанная страница не существует.");
+            }
+            var vehicle = query.Select(x => mapper.Map<VehicleDTO>(x)).ToList();
+            cache.Set(cacheKey, vehicle, TimeSpan.FromMinutes(360));
             return vehicle;
         }
     }

@@ -15,6 +15,7 @@ namespace TranzLog.Repositories
         private readonly IMapper mapper;
         private readonly IMemoryCache cache;
         private const string CacheKeyPrefix = "shippers_";
+        private static int CacheVersion = 0;
         public ShipperRepository(ShippingDbContext db, IMapper mapper, IMemoryCache cache) 
         {
             this.db = db;
@@ -27,7 +28,7 @@ namespace TranzLog.Repositories
             Shipper shipper = mapper.Map<Shipper>(shipperDTO);
             await db.Shippers.AddAsync(shipper);
             await db.SaveChangesAsync();
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<ShipperDTO>(shipper);
         }
 
@@ -39,11 +40,11 @@ namespace TranzLog.Repositories
                 db.Shippers.Remove(shipper);
                 await db.SaveChangesAsync();
                 cache.Remove(CacheKeyPrefix + id);
-                cache.Remove(CacheKeyPrefix);
+                Interlocked.Increment(ref CacheVersion);
             }
             else
             {
-                throw new EntityNotFoundException($"Shipper with ID {id} not found.");
+                throw new EntityNotFoundException($"Отправитель с ID {id} не найден.");
             }           
         }
 
@@ -53,13 +54,21 @@ namespace TranzLog.Repositories
             {
                 throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
-            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<ShipperDTO>? cacheList))
+            var cacheKey = $"{CacheKeyPrefix}_V{CacheVersion}_Page{page}_Size{pageSize}";
+
+            if (cache.TryGetValue(cacheKey, out IEnumerable<ShipperDTO>? cachedPage))
             {
-                if(cacheList != null)
-                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
+                if(cachedPage != null)
+                    return cachedPage;
             }
-            var shippers = db.Shippers.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<ShipperDTO>(x)).ToList();
-            cache.Set(CacheKeyPrefix, shippers, TimeSpan.FromMinutes(360));
+            var query = db.Shippers.Skip((page - 1) * pageSize).Take(pageSize);
+
+            if (!query.Any())
+            {
+                throw new InvalidParameterException("Указанная страница не существует.");
+            }
+            var shippers = query.Select(x => mapper.Map<ShipperDTO>(x)).ToList();
+            cache.Set(cacheKey, shippers, TimeSpan.FromMinutes(360));
             return shippers;
         }
 
@@ -95,6 +104,7 @@ namespace TranzLog.Repositories
                 await db.SaveChangesAsync();
                 string cacheKey = CacheKeyPrefix + entity.Id;
                 cache.Set(cacheKey, entity, TimeSpan.FromMinutes(360));
+                Interlocked.Increment(ref CacheVersion);
                 return mapper.Map<ShipperDTO>(shipper);               
             }
             else

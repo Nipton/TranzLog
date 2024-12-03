@@ -9,16 +9,15 @@ namespace TranzLog.Services
     public class DriverOrderService : IDriverOrderService
     {
         private readonly IMapper mapper;
-        private readonly ITransportOrderRepository orderRepo;
-        private readonly ILogger<DriverOrderService> logger;
+        private readonly ITransportOrderRepository orderRepo;       
         private readonly IAuthenticationService authenticationService;
         private readonly IDriverRepository driverRepository;
         private readonly IRepository<VehicleDTO> vehicleRepository;
-        public DriverOrderService(IMapper mapper, ITransportOrderRepository orderRepo, ILogger<DriverOrderService> logger, IAuthenticationService authenticationService, IDriverRepository driverRepository, IRepository<VehicleDTO> vehicleRepository)
+        public DriverOrderService(IMapper mapper, ITransportOrderRepository orderRepo, IAuthenticationService authenticationService, IDriverRepository driverRepository, IRepository<VehicleDTO> vehicleRepository)
         {
             this.mapper = mapper;
             this.orderRepo = orderRepo;
-            this.logger = logger;
+            
             this.authenticationService = authenticationService;
             this.driverRepository = driverRepository;
             this.vehicleRepository = vehicleRepository;
@@ -41,9 +40,8 @@ namespace TranzLog.Services
                 throw new InvalidParameterException("Недопустимый статус заказа.");
             }
             var orderStatus = (OrderStatus)newStatus;
-            if (!(orderStatus == OrderStatus.AcceptedByDriver || orderStatus == OrderStatus.Cancelled))
-                throw new InvalidParameterException("Статус заказа можно изменить только на 'AcceptedByDriver' или 'Cancelled'");
-
+            if (!(orderStatus == OrderStatus.AcceptedByDriver || orderStatus == OrderStatus.Completed))
+                throw new InvalidParameterException("Статус заказа можно изменить только на 'AcceptedByDriver' или 'Completed'");
             var currentUser = await authenticationService.GetCurrentUserAsync(httpContext);
             var driver = await driverRepository.FindDriverByUserIdAsync(currentUser.Id);
             if (driver == null)

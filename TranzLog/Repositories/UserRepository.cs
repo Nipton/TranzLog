@@ -16,6 +16,7 @@ namespace TranzLog.Repositories
         private readonly IMapper mapper;
         private IMemoryCache cache;
         private const string CacheKeyPrefix = "users_";
+        private static int CacheVersion = 0;
         public UserRepository(ShippingDbContext context, IMapper mapper, IMemoryCache cache) 
         {
             db = context;
@@ -27,14 +28,14 @@ namespace TranzLog.Repositories
         {
             await db.AddAsync(user);
             await db.SaveChangesAsync();
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
         }
         public async Task UpdateUserAsync(User user)
         {
             db.Update(user);
             await db.SaveChangesAsync();
             cache.Remove(CacheKeyPrefix + user.Id);
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
         }
         public async Task<User?> GetUserEntityByNameAsync(string userName)
         {
@@ -101,7 +102,7 @@ namespace TranzLog.Repositories
             await db.SaveChangesAsync();
             cache.Remove(CacheKeyPrefix + userDTO.UserName);
             cache.Remove(CacheKeyPrefix + userDTO.Id);
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<UserDTO>(user);
         }
 
@@ -115,7 +116,7 @@ namespace TranzLog.Repositories
             db.Users.Remove(user);
             await db.SaveChangesAsync();
             cache.Remove(CacheKeyPrefix + id);
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
         }
 
         public async Task<bool> UserExistsAsync(string userName)
@@ -144,14 +145,20 @@ namespace TranzLog.Repositories
             {
                 throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
-            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<UserDTO>? cacheList))
+            var cacheKey = $"{CacheKeyPrefix}_V{CacheVersion}_Page{page}_Size{pageSize}";
+
+            if (cache.TryGetValue(cacheKey, out IEnumerable<UserDTO>? cachedPage))
             {
-                if(cacheList != null)
-                {
-                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
-                }
+                if (cachedPage != null)
+                    return cachedPage;
             }
-            var users = db.Users.Skip((page - 1) * pageSize).Take(pageSize).Select(user => new UserDTO
+            var query = db.Users.Skip((page - 1) * pageSize).Take(pageSize);
+
+            if (!query.Any())
+            {
+                throw new InvalidParameterException("Указанная страница не существует.");
+            }
+            var users = query.Select(user => new UserDTO
             {
                 Id = user.Id,
                 UserName = user.UserName,
@@ -162,7 +169,7 @@ namespace TranzLog.Repositories
                 PhoneNumber = user.PhoneNumber,
                 CreatedDate = user.CreatedDate
             }).ToList();
-            cache.Set(CacheKeyPrefix, users, TimeSpan.FromMinutes(360));
+            cache.Set(cacheKey, users, TimeSpan.FromMinutes(360));
             return users;
         }      
     }

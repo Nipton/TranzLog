@@ -15,6 +15,7 @@ namespace TranzLog.Repositories
         private readonly IMapper mapper;
         private IMemoryCache cache;
         private const string CacheKeyPrefix = "order_";
+        private static int CacheVersion = 0;
         public TransportOrderRepository(ShippingDbContext db, IMapper mapper, IMemoryCache cache)
         {
             this.db = db;
@@ -27,7 +28,7 @@ namespace TranzLog.Repositories
             TransportOrder order = mapper.Map<TransportOrder>(entityDTO);
             await db.TransportOrders.AddAsync(order);
             await db.SaveChangesAsync();
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<TransportOrderDTO>(order);
         }
 
@@ -40,11 +41,12 @@ namespace TranzLog.Repositories
                 await db.SaveChangesAsync();
                 string cacheKey = CacheKeyPrefix + entityDTO.Id;
                 cache.Set(cacheKey, entityDTO, TimeSpan.FromMinutes(360));
+                Interlocked.Increment(ref CacheVersion);
                 return mapper.Map<TransportOrderDTO>(order);
             }
             else
             {
-                throw new EntityNotFoundException($"Order with ID {entityDTO} not found.");
+                throw new EntityNotFoundException($"Заказ с ID {entityDTO} не найден.");
             }
         }
 
@@ -56,11 +58,11 @@ namespace TranzLog.Repositories
                 db.TransportOrders.Remove(order);
                 await db.SaveChangesAsync();
                 cache.Remove(CacheKeyPrefix + id);
-                cache.Remove(CacheKeyPrefix);
+                Interlocked.Increment(ref CacheVersion);
             }
             else
             {
-                throw new EntityNotFoundException($"Order with ID {id} not found.");
+                throw new EntityNotFoundException($"Заказ с ID {id} не найден.");
             }
         }
 
@@ -95,14 +97,20 @@ namespace TranzLog.Repositories
             {
                 throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
-            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<TransportOrderDTO>? cacheList))
+            var cacheKey = $"{CacheKeyPrefix}_V{CacheVersion}_Page{page}_Size{pageSize}";
+
+            if (cache.TryGetValue(cacheKey, out IEnumerable<TransportOrderDTO>? cachedPage))
             {
-                if (cacheList != null)
-                {
-                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
-                }
+                if (cachedPage != null)
+                    return cachedPage;
             }
-            var order = db.TransportOrders.Skip((page - 1) * pageSize).Take(pageSize).Select(order => new TransportOrderDTO
+            var query = db.TransportOrders.Skip((page - 1) * pageSize).Take(pageSize);
+
+            if (!query.Any())
+            {
+                throw new InvalidParameterException("Указанная страница не существует.");
+            }
+            var order = query.Select(order => new TransportOrderDTO
             {
                 Id = order.Id,
                 UserId = order.UserId,
@@ -118,7 +126,7 @@ namespace TranzLog.Repositories
                 OrderStatus = order.OrderStatus,
                 TrackNumber = order.TrackNumber
             }).ToList();
-            cache.Set(CacheKeyPrefix, order, TimeSpan.FromMinutes(360));
+            cache.Set(cacheKey, order, TimeSpan.FromMinutes(360));
             return order;
         }
 

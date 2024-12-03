@@ -15,6 +15,7 @@ namespace TranzLog.Repositories
         private readonly IMapper mapper;
         private IMemoryCache cache;
         private const string CacheKeyPrefix = "route_";
+        private static int CacheVersion = 0;
         public RouteRepository(ShippingDbContext db, IMapper mapper, IMemoryCache cache)
         {
             this.db = db;
@@ -27,7 +28,7 @@ namespace TranzLog.Repositories
             Models.Route route = mapper.Map<Models.Route>(entityDTO);
             await db.Routes.AddRangeAsync(route);
             await db.SaveChangesAsync();
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<RouteDTO>(route);
         }
 
@@ -40,11 +41,12 @@ namespace TranzLog.Repositories
                 await db.SaveChangesAsync();
                 string cacheKey = CacheKeyPrefix + entityDTO.Id;
                 cache.Set(cacheKey, entityDTO, TimeSpan.FromMinutes(360));
+                Interlocked.Increment(ref CacheVersion);
                 return mapper.Map<RouteDTO>(route);
             }
             else
             {
-                throw new EntityNotFoundException($"Route with ID {entityDTO} not found.");
+                throw new EntityNotFoundException($"Маршрут с ID {entityDTO.Id} не найден.");
             }
         }
 
@@ -56,11 +58,11 @@ namespace TranzLog.Repositories
                 db.Routes.Remove(route);
                 await db.SaveChangesAsync();
                 cache.Remove(CacheKeyPrefix + id);
-                cache.Remove(CacheKeyPrefix);
+                Interlocked.Increment(ref CacheVersion);
             }
             else
             {
-                throw new ArgumentException($"Route with ID {id} not found.");
+                throw new EntityNotFoundException($"Маршрут с ID {id} не найден.");
             }
         }
 
@@ -93,15 +95,21 @@ namespace TranzLog.Repositories
             {
                 throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
-            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<RouteDTO>? cacheList))
+            var cacheKey = $"{CacheKeyPrefix}_V{CacheVersion}_Page{page}_Size{pageSize}";
+
+            if (cache.TryGetValue(cacheKey, out IEnumerable<RouteDTO>? cachedPage))
             {
-                if (cacheList != null)
-                {
-                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
-                }
+                if (cachedPage != null)
+                    return cachedPage;
             }
-            var route = db.Routes.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<RouteDTO>(x)).ToList();
-            cache.Set(CacheKeyPrefix, route, TimeSpan.FromMinutes(360));
+            var query = db.Routes.Skip((page - 1) * pageSize).Take(pageSize);
+
+            if (!query.Any())
+            {
+                throw new InvalidParameterException("Указанная страница не существует.");
+            }
+            var route = query.Select(x => mapper.Map<RouteDTO>(x)).ToList();
+            cache.Set(cacheKey, route, TimeSpan.FromMinutes(360));
             return route;
         }
         public async Task<RouteDTO?> GetRoutesAsync(string from, string to)

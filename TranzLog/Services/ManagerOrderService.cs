@@ -10,12 +10,10 @@ namespace TranzLog.Services
     {
         private readonly IMapper mapper;
         private readonly ITransportOrderRepository orderRepo;
-        private readonly ILogger<ManagerOrderService> logger;
-        public ManagerOrderService(IMapper mapper, ITransportOrderRepository orderRepo, ILogger<ManagerOrderService> logger)
+        public ManagerOrderService(IMapper mapper, ITransportOrderRepository orderRepo)
         {
             this.mapper = mapper;
             this.orderRepo = orderRepo;
-            this.logger = logger;
         }
 
         public async Task<List<UserOrderResponseDTO>> GetPendingOrdersAsync()

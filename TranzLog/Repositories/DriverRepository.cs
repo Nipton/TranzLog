@@ -15,6 +15,7 @@ namespace TranzLog.Repositories
         private readonly IMapper mapper;
         private readonly IMemoryCache cache;
         private const string CacheKeyPrefix = "drivers_";
+        private static int CacheVersion = 0;
         public DriverRepository(ShippingDbContext shippingDbContext, IMemoryCache cache, IMapper mapper) 
         {
             db = shippingDbContext;
@@ -40,7 +41,7 @@ namespace TranzLog.Repositories
             }
             await db.Drivers.AddAsync(driver);
             await db.SaveChangesAsync();
-            cache.Remove(CacheKeyPrefix);
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<DriverDTO>(driver);
         }
         public async Task DeleteAsync(int id)
@@ -51,11 +52,11 @@ namespace TranzLog.Repositories
                 db.Drivers.Remove(driver);
                 await db.SaveChangesAsync();
                 cache.Remove(CacheKeyPrefix + id);
-                cache.Remove(CacheKeyPrefix);
+                Interlocked.Increment(ref CacheVersion);
             }
             else
             {
-                throw new EntityNotFoundException($"Driver with ID {id} not found.");
+                throw new EntityNotFoundException($"Водитель с ID {id} не  найден.");
             }
         }
 
@@ -65,15 +66,21 @@ namespace TranzLog.Repositories
             {
                 throw new InvalidPaginationParameterException("Параметры page и pageSize должны быть больше нуля.");
             }
-            if (cache.TryGetValue(CacheKeyPrefix, out IEnumerable<DriverDTO>? cacheList))
+            var cacheKey = $"{CacheKeyPrefix}_V{CacheVersion}_Page{page}_Size{pageSize}";
+
+            if (cache.TryGetValue(cacheKey, out IEnumerable<DriverDTO>? cachedPage))
             {
-                if (cacheList != null)
-                {
-                    return cacheList.Skip((page - 1) * pageSize).Take(pageSize);
-                }
+                if (cachedPage != null)
+                    return cachedPage;
             }
-            var drivers = db.Drivers.Skip((page - 1) * pageSize).Take(pageSize).Select(x => mapper.Map<DriverDTO>(x)).ToList();
-            cache.Set(CacheKeyPrefix, drivers, TimeSpan.FromMinutes(360));
+            var query = db.Drivers.Skip((page - 1) * pageSize).Take(pageSize);
+
+            if (!query.Any())
+            {
+                throw new InvalidParameterException("Указанная страница не существует.");
+            }
+            var drivers = query.Select(x => mapper.Map<DriverDTO>(x)).ToList();
+            cache.Set(cacheKey, drivers, TimeSpan.FromMinutes(360));
             return drivers;
         }
 
@@ -104,7 +111,7 @@ namespace TranzLog.Repositories
         {
             Driver? driver = await db.Drivers.FindAsync(entityDTO.Id);
             if (driver == null)
-                throw new EntityNotFoundException($"Driver with ID {entityDTO} not found.");
+                throw new EntityNotFoundException($"Водитель с ID {entityDTO.Id} не  найден.");
             if (driver.UserId != null)
             {
                 var user = await db.Users.FindAsync(driver.UserId);
@@ -122,6 +129,7 @@ namespace TranzLog.Repositories
             await db.SaveChangesAsync();
             string cacheKey = CacheKeyPrefix + entityDTO.Id;
             cache.Set(cacheKey, entityDTO, TimeSpan.FromMinutes(360));
+            Interlocked.Increment(ref CacheVersion);
             return mapper.Map<DriverDTO>(driver);
         }
 
