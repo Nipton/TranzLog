@@ -19,7 +19,19 @@ namespace TranzLog.Controllers
             this.orderService = orderService;
             this.logger = logger;
         }
+        /// <summary>
+        /// Получить список заказов, назначенных водителю.
+        /// </summary>
+        /// <returns>Список назначенных заказов.</returns>
+        /// <response code="200">Список успешно получен.</response>
+        /// <response code="401">Ошибка аутентификации.</response>
+        /// <response code="404">Пользователь не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<List<DriverOrderDTO>>> GetDriverAssignedOrders()
         {
             try
@@ -43,7 +55,27 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Обновить статус доставки заказа.
+        /// </summary>
+        /// /// <remarks>
+        /// Водителю статус заказа можно изменить только на 'AcceptedByDriver' или 'Completed'.
+        /// </remarks>
+        /// <param name="orderId">ID заказа.</param>
+        /// <param name="newStatus">Новый статус доставки.</param>
+        /// <response code="200">Статус успешно обновлён.</response>
+        /// <response code="400">Некорректные параметры.</response>
+        /// <response code="401">Ошибка аутентификации.</response>
+        /// <response code="403">Доступ запрещён.</response>
+        /// <response code="404">Заказ или пользователь не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPatch("{orderId}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> UpdateOrderDeliveryStatus(int orderId, int newStatus)
         {
             try

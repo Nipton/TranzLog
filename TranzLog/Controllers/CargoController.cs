@@ -20,7 +20,20 @@ namespace TranzLog.Controllers
             this.repo = repo;
             this.logger = logger;
         }
+        /// <summary>
+        /// Добавить новый груз.
+        /// </summary>
+        /// <param name="cargoDTO">Данные нового груза.</param>
+        /// <returns>Созданный груз.</returns>
+        /// <response code="200">Груз успешно добавлен.</response>
+        /// <response code="400">Некорректные данные.</response>
+        /// <response code="404">Связанная сущность(заказ) не найдена.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<CargoDTO>> AddCargoAsync(CargoDTO cargoDTO)
         {
             try
@@ -45,7 +58,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить груз по ID.
+        /// </summary>
+        /// <param name="id">ID груза.</param>
+        /// <returns>Груз с указанным ID.</returns>
+        /// <response code="200">Груз найден.</response>
+        /// <response code="404">Груз с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<CargoDTO>> GetCargoAsync(int id)
         {
             try
@@ -61,7 +85,19 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить список всех грузов с пагинацией.
+        /// </summary>
+        /// <param name="page">Номер страницы (по умолчанию 1).</param>
+        /// <param name="pageSize">Размер страницы (по умолчанию 10).</param>
+        /// <returns>Список грузов.</returns>
+        /// <response code="200">Грузы успешно получены.</response>
+        /// <response code="400">Некорректные параметры пагинации.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<IEnumerable<CargoDTO>> GetAllCargo(int page = 1, int pageSize = 10)
         {
             try
@@ -80,7 +116,17 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Удалить груз по ID.
+        /// </summary>
+        /// <param name="id">ID груза.</param>
+        /// <response code="204">Груз успешно удалён.</response>
+        /// <response code="404">Груз с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteCargo(int id)
         {
             try
@@ -99,7 +145,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Обновить данные груза.
+        /// </summary>
+        /// <param name="cargoDTO">Груз с обновленными данными</param>
+        /// <returns>Обновлённый груз.</returns>
+        /// <response code="200">Груз успешно обновлён.</response>
+        /// <response code="404">Груз с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<CargoDTO>> UpdateCargo(CargoDTO cargoDTO)
         {
             try

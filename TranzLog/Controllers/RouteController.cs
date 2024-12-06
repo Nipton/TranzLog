@@ -20,7 +20,18 @@ namespace TranzLog.Controllers
             this.repo = repo;
             this.logger = logger;
         }
+        /// <summary>
+        /// Добавить новый маршрут.
+        /// </summary>
+        /// <param name="routeDTO">Данные маршрута.</param>
+        /// <returns>Созданный маршрут.</returns>
+        /// <response code="200">Маршрут успешно добавлен.</response>
+        /// <response code="400">Некорректные данные.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<RouteDTO>> AddRouteAsync(RouteDTO routeDTO)
         {
             try
@@ -40,7 +51,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить маршрут по ID.
+        /// </summary>
+        /// <param name="id">ID маршрута.</param>
+        /// <returns>Маршрут с указанным ID.</returns>
+        /// <response code="200">Маршрут найден.</response>
+        /// <response code="404">Маршрут с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<RouteDTO>> GetRouteAsync(int id)
         {
             try
@@ -56,7 +78,19 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить список всех маршрутов.
+        /// </summary>
+        /// <param name="page">Номер страницы (по умолчанию 1).</param>
+        /// <param name="pageSize">Размер страницы (по умолчанию 10).</param>
+        /// <returns>Список маршрутов.</returns>
+        /// <response code="200">Список маршрутов успешно получен.</response>
+        /// <response code="400">Некорректные параметры пагинации.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<IEnumerable<RouteDTO>> GetAllRoute(int page = 1, int pageSize = 10)
         {
             try
@@ -75,7 +109,17 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Удалить маршрут по ID.
+        /// </summary>
+        /// <param name="id">ID маршрута.</param>
+        /// <response code="204">Маршрут успешно удалён.</response>
+        /// <response code="404">Маршрут с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteRoute(int id)
         {
             try
@@ -94,7 +138,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Обновить данные маршрута.
+        /// </summary>
+        /// <param name="routeDTO">Обновлённые данные маршрута.</param>
+        /// <returns>Обновлённый маршрут.</returns>
+        /// <response code="200">Маршрут успешно обновлён.</response>
+        /// <response code="404">Маршрут с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<RouteDTO>> UpdateRoute(RouteDTO routeDTO)
         {
             try
@@ -113,7 +168,19 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Поиск маршрутов по точкам отправления и назначения.
+        /// </summary>
+        /// <param name="from">Пункт отправления.</param>
+        /// <param name="to">Пункт назначения.</param>
+        /// <returns>Маршрут, соответствующий критериям.</returns>
+        /// <response code="200">Маршрут найден.</response>
+        /// <response code="404">Маршрут не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<RouteDTO>> GetRoutesAsync(string from, string to)
         {
             try

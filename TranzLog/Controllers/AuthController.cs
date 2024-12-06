@@ -19,8 +19,21 @@ namespace TranzLog.Controllers
             this.authenticationService = authenticationService;
             this.logger = logger;
         }
+        /// <summary>
+        /// Аутентификация пользователя.
+        /// </summary>
+        /// <param name="userDTO">Данные для входа (логин и пароль).</param>
+        /// <returns>Токен доступа в случае успешной аутентификации.</returns>
+        /// <response code="200">Успешная аутентификация. Возвращает токен доступа.</response>
+        /// <response code="400">Некорректные данные для входа.</response>
+        /// <response code="401">Пользователь не найден или указан неверный пароль.</response>
+        /// <response code="500">Ошибка сервера во время аутентификации.</response>
         [AllowAnonymous]
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<string>> Login(LoginDTO userDTO)
         {
             if (!ModelState.IsValid)
@@ -46,8 +59,21 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Регистрация нового пользователя.
+        /// </summary>
+        /// <param name="registerDTO">Данные для регистрации (имя пользователя, пароль и т.д.).</param>
+        /// <returns>Сообщение о результате регистрации.</returns>
+        /// <response code="200">Успешная регистрация. Возвращает сообщение об успехе.</response>
+        /// <response code="400">Некорректные данные для регистрации.</response>
+        /// <response code="409">Пользователь с указанными данными уже существует.</response>
+        /// <response code="500">Ошибка сервера во время регистрации.</response>
         [AllowAnonymous]
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Register(RegisterDTO registerDTO)
         {
             if (!ModelState.IsValid)
@@ -56,14 +82,14 @@ namespace TranzLog.Controllers
             }
             try
             {
-                var reusltRegister = await authenticationService.RegisterAsync(registerDTO);
-                if(reusltRegister.Success)
+                var resultRegister = await authenticationService.RegisterAsync(registerDTO);
+                if(resultRegister.Success)
                 {
-                    return Ok(reusltRegister.Message);
+                    return Ok(resultRegister.Message);
                 }
                 else
                 {
-                    return Conflict(reusltRegister.Message);
+                    return Conflict(resultRegister.Message);
                 }
             }
             catch (Exception ex)

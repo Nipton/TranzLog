@@ -27,7 +27,20 @@ namespace TranzLog.Controllers
             this.logger = logger;
             this.authenticationService = authenticationService;
         }
+        /// <summary>
+        /// Обновить данные пользователя.
+        /// </summary>
+        /// <param name="userDTO">Обновлённые данные пользователя.</param>
+        /// <returns>Обновлённый пользователь.</returns>
+        /// <response code="200">Пользователь успешно обновлён.</response>
+        /// <response code="404">Пользователь не найден.</response>
+        /// <response code="409">Дубликат данных пользователя. Новый ID или никнейм заняты.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserDTO>> UpdateUser(UserDTO userDTO)
         {
             try
@@ -51,7 +64,17 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Удалить пользователя по ID.
+        /// </summary>
+        /// <param name="id">ID пользователя.</param>
+        /// <response code="204">Пользователь успешно удалён.</response>
+        /// <response code="404">Пользователь не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteUser(int id)
         {
             try
@@ -70,7 +93,19 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить всех пользователей с пагинацией.
+        /// </summary>
+        /// <param name="page">Номер страницы (по умолчанию 1).</param>
+        /// <param name="pageSize">Размер страницы (по умолчанию 10).</param>
+        /// <returns>Список пользователей.</returns>
+        /// <response code="200">Пользователи успешно получены.</response>
+        /// <response code="400">Некорректные параметры пагинации.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<IEnumerable<UserDTO>> GetAllUsers(int page = 1, int pageSize = 10)
         {
             try
@@ -89,7 +124,16 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Проверить существование пользователя.
+        /// </summary>
+        /// <param name="userName">Имя пользователя.</param>
+        /// <returns>True, если пользователь существует, иначе False.</returns>
+        /// <response code="200">Проверка выполнена успешно.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("check-{userName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<bool>> ValidateUserExists(string userName)
         {
             try
@@ -103,7 +147,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить пользователя по имени.
+        /// </summary>
+        /// <param name="userName">Имя пользователя.</param>
+        /// <returns>Данные пользователя.</returns>
+        /// <response code="200">Пользователь найден.</response>
+        /// <response code="404">Пользователь не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("find-{userName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserDTO>> GetUserByName(string userName)
         {
             try
@@ -119,7 +174,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить пользователя по ID.
+        /// </summary>
+        /// <param name="id">ID пользователя.</param>
+        /// <returns>Данные пользователя.</returns>
+        /// <response code="200">Пользователь найден.</response>
+        /// <response code="404">Пользователь не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserDTO>> GetUserById(int id)
         {
             try
@@ -135,7 +201,24 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Изменить роль пользователя.
+        /// </summary>
+        /// <param name="userName">Имя пользователя.</param>
+        /// <param name="targetRole">Целевая роль.</param>
+        /// <response code="200">Роль успешно изменена.</response>
+        /// <response code="401">Ошибка аутентификации.</response>
+        /// <response code="403">Доступ запрещён.</response>
+        /// <response code="404">Пользователь не найден.</response>
+        /// <response code="400">Некорректные параметры.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPatch]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> ChangeRole(string userName, string targetRole)
         {
             try

@@ -18,7 +18,18 @@ namespace TranzLog.Controllers
             repo = repository;
             this.logger = logger;
         }
+        /// <summary>
+        /// Добавить нового получателя.
+        /// </summary>
+        /// <param name="consignee">Данные нового получателя.</param>
+        /// <returns>Созданный получатель.</returns>
+        /// <response code="200">Получатель успешно добавлен.</response>
+        /// <response code="400">Некорректные данные.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ConsigneeDTO>> AddConsigneeAsync(ConsigneeDTO consignee)
         {
             try
@@ -37,7 +48,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить данные о получателе по ID.
+        /// </summary>
+        /// <param name="id">ID получателя.</param>
+        /// <returns>Данные получателя.</returns>
+        /// <response code="200">Получатель найден.</response>
+        /// <response code="404">Получатель с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ConsigneeDTO>> GetConsigneeAsync(int id)
         {
             try
@@ -53,7 +75,17 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить список всех получателей.
+        /// </summary>
+        /// <returns>Список получателей.</returns>
+        /// <response code="200">Список получателей успешно получен.</response>
+        /// <response code="400">Некорректные параметры пагинации.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<IEnumerable<ConsigneeDTO>> GetAllConsignee()
         {
             try
@@ -72,7 +104,17 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Удалить получателя по ID.
+        /// </summary>
+        /// <param name="id">ID получателя.</param>
+        /// <response code="200">Получатель успешно удалён.</response>
+        /// <response code="404">Получатель с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteConsignee(int id)
         {
             try
@@ -91,7 +133,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Обновить данные получателя.
+        /// </summary>
+        /// <param name="consignee">Обновлённые данные получателя.</param>
+        /// <returns>Обновлённый получатель.</returns>
+        /// <response code="200">Получатель успешно обновлён.</response>
+        /// <response code="404">Получатель с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ConsigneeDTO>> UpdateConsigneeAsync(ConsigneeDTO consignee)
         {
             try

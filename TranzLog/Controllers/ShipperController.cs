@@ -19,7 +19,18 @@ namespace TranzLog.Controllers
             this.repo = shipperRepository;
             this.logger = logger;
         }
+        /// <summary>
+        /// Добавить нового отправителя.
+        /// </summary>
+        /// <param name="shipperDTO">Данные отправителя.</param>
+        /// <returns>Созданный отправитель.</returns>
+        /// <response code="200">Отправитель успешно добавлен.</response>
+        /// <response code="400">Некорректные данные.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShipperDTO>> AddShipperAsync(ShipperDTO shipperDTO)
         {
             try
@@ -38,7 +49,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить отправителя по ID.
+        /// </summary>
+        /// <param name="id">ID отправителя.</param>
+        /// <returns>Отправитель с указанным ID.</returns>
+        /// <response code="200">Отправитель найден.</response>
+        /// <response code="404">Отправитель с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShipperDTO>> GetShipperAsync(int id)
         {
             try
@@ -54,7 +76,17 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Удалить отправителя по ID.
+        /// </summary>
+        /// <param name="id">ID отправителя.</param>
+        /// <response code="204">Отправитель успешно удалён.</response>
+        /// <response code="404">Отправитель с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteShipperAsync(int id)
         {
             try
@@ -73,7 +105,19 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Получить список всех отправителей с пагинацией.
+        /// </summary>
+        /// <param name="page">Номер страницы (по умолчанию 1).</param>
+        /// <param name="pageSize">Размер страницы (по умолчанию 10).</param>
+        /// <returns>Список отправителей.</returns>
+        /// <response code="200">Список успешно получен.</response>
+        /// <response code="400">Некорректные параметры пагинации.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<IEnumerable<ShipperDTO>> GetAllShippers(int page = 1, int pageSize = 10)
         {
             try
@@ -92,7 +136,18 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Обновить данные отправителя.
+        /// </summary>
+        /// <param name="shipperDTO">Обновлённые данные отправителя.</param>
+        /// <returns>Обновлённый отправитель.</returns>
+        /// <response code="200">Отправитель успешно обновлён.</response>
+        /// <response code="404">Отправитель с указанным ID не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShipperDTO>> UpdateShipperAsync(ShipperDTO shipperDTO)
         {
             try

@@ -20,7 +20,15 @@ namespace TranzLog.Controllers
             this.managerOrderService = managerOrderService;
             this.logger = logger;
         }
+        /// <summary>
+        /// Получить все заказы со статусом "Pending".
+        /// </summary>
+        /// <returns>Список заказов со статусом "Pending".</returns>
+        /// <response code="200">Список заказов успешно получен.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<List<UserOrderResponseDTO>>> GetPendingOrders()
         {
             try
@@ -34,7 +42,20 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Обновить статус заказа.
+        /// </summary>
+        /// <param name="orderId">ID заказа.</param>
+        /// <param name="newStatus">Новый статус заказа.</param>
+        /// <response code="200">Статус заказа успешно обновлён.</response>
+        /// <response code="400">Некорректные параметры.</response>
+        /// <response code="404">Заказ не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
         [HttpPatch("{orderId}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> UpdateOrderStatus(int orderId, int newStatus)
         {
             try
