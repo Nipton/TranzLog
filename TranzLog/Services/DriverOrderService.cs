@@ -8,14 +8,12 @@ namespace TranzLog.Services
 {
     public class DriverOrderService : IDriverOrderService
     {
-        private readonly IMapper mapper;
         private readonly ITransportOrderRepository orderRepo;       
         private readonly IAuthenticationService authenticationService;
         private readonly IDriverRepository driverRepository;
         private readonly IRepository<VehicleDTO> vehicleRepository;
-        public DriverOrderService(IMapper mapper, ITransportOrderRepository orderRepo, IAuthenticationService authenticationService, IDriverRepository driverRepository, IRepository<VehicleDTO> vehicleRepository)
+        public DriverOrderService(ITransportOrderRepository orderRepo, IAuthenticationService authenticationService, IDriverRepository driverRepository, IRepository<VehicleDTO> vehicleRepository)
         {
-            this.mapper = mapper;
             this.orderRepo = orderRepo;
             
             this.authenticationService = authenticationService;

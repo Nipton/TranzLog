@@ -225,7 +225,7 @@ namespace TranzLogTests
             transactionMock.Verify(t => t.Rollback(), Times.Once);
         }
         [Fact]
-        public async Task CreateOrderByUserAsync_WhenDataIsValid_ShouldReturnTrackNumber()
+        public async Task CreateOrderByUserAsync_WhenDataIsValid()
         {
             var userOrderDTO = new UserOrderRequestDTO
             {
