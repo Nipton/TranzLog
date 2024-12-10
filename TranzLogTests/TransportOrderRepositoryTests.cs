@@ -100,7 +100,7 @@ namespace TranzLogTests
             await repository.DeleteAsync(order.Id);
 
             var orderInDb = await dbContext.TransportOrders.FindAsync(order.Id);
-            Assert.Null(orderInDb); // Заказ должен быть удален
+            Assert.Null(orderInDb); 
         }
         [Fact]
         public async Task InvalidatesCacheByVersionChange()
