@@ -65,7 +65,7 @@ namespace TranzLog.Migrations
 
                     b.HasIndex("TransportOrderId");
 
-                    b.ToTable("Cargo");
+                    b.ToTable("Cargo", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.Consignee", b =>
@@ -100,7 +100,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Consignees");
+                    b.ToTable("Consignees", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.Driver", b =>
@@ -137,7 +137,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Drivers");
+                    b.ToTable("Drivers", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.Route", b =>
@@ -164,7 +164,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Routes");
+                    b.ToTable("Routes", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.Shipper", b =>
@@ -199,7 +199,7 @@ namespace TranzLog.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shippers");
+                    b.ToTable("Shippers", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.TransportOrder", b =>
@@ -259,7 +259,7 @@ namespace TranzLog.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("TransportOrders");
+                    b.ToTable("TransportOrders", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.User", b =>
@@ -306,7 +306,7 @@ namespace TranzLog.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.Vehicle", b =>
@@ -340,7 +340,7 @@ namespace TranzLog.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.ToTable("Vehicles");
+                    b.ToTable("Vehicles", (string)null);
                 });
 
             modelBuilder.Entity("TranzLog.Models.Cargo", b =>
