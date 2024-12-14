@@ -16,12 +16,16 @@ namespace TranzLog.Services
         private readonly ITransactionManager transactionManager;
         private readonly IAuthenticationService authenticationService;
         private readonly IRepositoryContainer repoContainer;
-        public OrderService(ITransactionManager transactionManager, IMapper mapper, IRepositoryContainer repoContainer,  IAuthenticationService authenticationService)
+        private readonly ICostCalculationService costCalculation;
+        private readonly IDistanceCalculationService distanceCalculation;
+        public OrderService(ITransactionManager transactionManager, IMapper mapper, IRepositoryContainer repoContainer,  IAuthenticationService authenticationService, ICostCalculationService costCalculation, IDistanceCalculationService distanceCalculation)
         {
             this.mapper = mapper;
             this.authenticationService = authenticationService;
             this.transactionManager = transactionManager;
             this.repoContainer = repoContainer;
+            this.costCalculation = costCalculation;
+            this.distanceCalculation = distanceCalculation;
         }
         
         public async Task<TransportOrderDTO> CreateOrderAsync(TransportOrderDTO orderDTO)
@@ -78,26 +82,29 @@ namespace TranzLog.Services
         }
         public async Task<string> CreateOrderByUserAsync(UserOrderRequestDTO userOrderDTO, HttpContext httpContext)
         {
-            if (userOrderDTO.Consignee == null || userOrderDTO.Shipper == null || userOrderDTO.RouteId == null || userOrderDTO.CargoList.Count < 1)
+            if (userOrderDTO.Consignee == null || userOrderDTO.Shipper == null || userOrderDTO.Route == null || userOrderDTO.CargoList.Count < 1)
             {
                 throw new InvalidParameterException("Неполные данные для создания заказа.");
             }
-            if(!await repoContainer.RouteRepo.RouteExistsAsync((int)userOrderDTO.RouteId))
-                throw new EntityNotFoundException("Несуществующий путь.");
             TransportOrderDTO order = new TransportOrderDTO();
             var currentUserWithId = await authenticationService.GetCurrentUserAsync(httpContext);
             order.UserId = currentUserWithId.Id;
             order.OrderStatus = OrderStatus.Pending;
-            order.RouteId = userOrderDTO.RouteId;
             order.CreatedAt = DateTime.UtcNow;
             order.Notes = userOrderDTO.Notes;
             order.TrackNumber = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 12).ToUpper();
+            var distance = await distanceCalculation.CalculateDistanceAsync(mapper.Map<Models.Route>(userOrderDTO.Route));
+            userOrderDTO.Route.EstimatedDuration = distance.Duration;
+            userOrderDTO.Route.Distance = distance.Distance;
+            order.DeliveryCost = costCalculation.CalculateCost(distance.Distance, userOrderDTO.CargoList.Select(x => mapper.Map<Cargo>(x)).ToList());
             using (var transaction = transactionManager.BeginTransaction())
             {
                 try
                 {
+                    var route = await repoContainer.RouteRepo.AddAsync(userOrderDTO.Route);
                     var consignee = await repoContainer.ConsigneeRepo.AddAsync(userOrderDTO.Consignee);
                     var shipper = await repoContainer.ShipperRepo.AddAsync(userOrderDTO.Shipper);
+                    order.RouteId = route.Id;
                     order.ShipperId = shipper.Id;
                     order.ConsigneeId = consignee.Id;
                     var orderResult = await repoContainer.OrderRepo.AddAsync(order);

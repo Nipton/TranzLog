@@ -1,8 +1,9 @@
-﻿using TranzLog.Models;
+﻿using TranzLog.Interfaces;
+using TranzLog.Models;
 
 namespace TranzLog.Services
 {
-    public class CostCalculationService
+    public class CostCalculationService : ICostCalculationService
     {
         const double baseRate = 500; // Базовая ставка
         const double ratePerKm = 10; // Цена за километр

@@ -20,7 +20,20 @@ namespace TranzLogTests
             var exception = Assert.Throws<Exception>(() => new DistanceCalculationService(configuration, httpClient));
             Assert.Equal("API ключ не найден в конфигурации.", exception.Message);
         }
+        [Fact]
+        public async void CalculateDistanceAsync_NullRoute()
+        {
+            var configurationMock = new Mock<IConfiguration>();
+            configurationMock.Setup(c => c["Geoapify:ApiKey"]).Returns("YOUR_API_KEY");
+            var httpClient = new HttpClient();
+            var service = new DistanceCalculationService(configurationMock.Object, httpClient);
 
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            {
+                await service.CalculateDistanceAsync(null);
+            });
+            Assert.Contains("Маршрут не может быть null.", exception.Message);
+        }
         //[Fact]
         [Fact(Skip = "Используется для ручного тестирования с реальным API")]
         public async Task TestRealApiRequest()
@@ -41,7 +54,7 @@ namespace TranzLogTests
             Assert.Equal(time, result.Duration);
         }
         [Fact]
-        public async Task CalculateDistanceAsync_ValidRoute_ReturnsCorrectResult()
+        public async Task CalculateDistanceAsync_ReturnsCorrectResult()
         {
             var mockHttp = new MockHttpMessageHandler();
 
@@ -72,7 +85,7 @@ namespace TranzLogTests
             Assert.Equal(TimeSpan.FromSeconds(26426.347), result.Duration);
         }
         [Fact]
-        public async Task CalculateDistanceAsync_ErrorStatus_ThrowsException()
+        public async Task CalculateDistanceAsync_ThrowsException()
         {
             var mockHttp = new MockHttpMessageHandler();
 

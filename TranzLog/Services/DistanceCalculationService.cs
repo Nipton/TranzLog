@@ -18,6 +18,10 @@ namespace TranzLog.Services
         }
         public async Task<(double Distance, TimeSpan Duration)> CalculateDistanceAsync(Models.Route route)
         {
+            if (route == null)
+            {
+                throw new ArgumentNullException("Маршрут не может быть null.");
+            }
             string url = $"{GeoapifyBaseUrl}?waypoints=" +$"{route.OriginLatitude.ToString(CultureInfo.InvariantCulture)}," + $"{route.OriginLongitude.ToString(CultureInfo.InvariantCulture)}|" + $"{route.DestinationLatitude.ToString(CultureInfo.InvariantCulture)}," + $"{route.DestinationLongitude.ToString(CultureInfo.InvariantCulture)}" + $"&mode=drive&apiKey={apiKey}";
             HttpResponseMessage response = await httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
