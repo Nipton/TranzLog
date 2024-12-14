@@ -7,6 +7,7 @@
         public DateTime? CompletionTime { get; set; }
         public DateTime? StartTransportTime { get; set; }
         public DateTime? PlannedDeliveryTime { get; set; }
+        public double? DeliveryCost { get; set; }
         public string? Notes { get; set; }
         public OrderStatus OrderStatus { get; set; }
         public string? TrackNumber { get; set; }

@@ -79,5 +79,46 @@ namespace TranzLog.Controllers
                 return StatusCode(500, "Ошибка сервера");
             }
         }
+        /// <summary>
+        /// Подтверждает заказ на основании предоставленных данных.
+        /// </summary>
+        /// <param name="request">DTO с информацией для подтверждения заказа, включая ID заказа и время начала транспортировки.</param>
+        /// <response code="200">Заказ успешно подтвержден.</response>
+        /// <response code="404">Заказ или связанная сущность не найдены.</response>
+        /// <response code="400">Некорректные параметры или бизнес-логика не позволяет подтвердить заказ.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpPatch("confirm")]
+        public async Task<ActionResult> ConfirmOrder(ConfirmOrderRequestDTO request)
+        {
+            try
+            {
+                await managerOrderService.ConfirmOrderAsync(request);
+                return Ok(new { Message = "Заказ подтвержден" });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest($"{ex.Message}");
+            }
+            catch (InvalidParameterException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
+            }
+        }
     }
 }

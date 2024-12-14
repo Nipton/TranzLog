@@ -16,7 +16,7 @@ namespace TranzLog.Models.DTO
         public DateTime? PlannedDeliveryTime { get; set; }
         public string? Notes { get; set; }
         public OrderStatus OrderStatus { get; set; }
-        public double DeliveryCost { get; set; }
+        public double? DeliveryCost { get; set; }
         public string? TrackNumber { get; set; }
     }
 }

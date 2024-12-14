@@ -9,16 +9,16 @@ namespace TranzLog.Services
     public class ManagerOrderService : IManagerOrderService
     {
         private readonly IMapper mapper;
-        private readonly ITransportOrderRepository orderRepo;
-        public ManagerOrderService(IMapper mapper, ITransportOrderRepository orderRepo)
+        private readonly IRepositoryContainer repoContainer;
+        public ManagerOrderService(IMapper mapper, IRepositoryContainer repoContainer)
         {
             this.mapper = mapper;
-            this.orderRepo = orderRepo;
+            this.repoContainer = repoContainer;
         }
 
         public async Task<List<UserOrderResponseDTO>> GetPendingOrdersAsync()
         {
-            var ordersPending = await orderRepo.GetPendingOrdersAsync();
+            var ordersPending = await repoContainer.OrderRepo.GetPendingOrdersAsync();
             var ordersDTO = ordersPending.Select(order => mapper.Map<UserOrderResponseDTO>(order)).ToList();
             return ordersDTO;
         }
@@ -29,7 +29,26 @@ namespace TranzLog.Services
                 throw new InvalidParameterException("Недопустимый статус заказа.");
             }
             var orderStatus = (OrderStatus)newStatus;
-            await orderRepo.UpdateOrderStatusAsync(orderId, orderStatus);
+            await repoContainer.OrderRepo.UpdateOrderStatusAsync(orderId, orderStatus);
+        }
+        public async Task ConfirmOrderAsync(ConfirmOrderRequestDTO request)
+        {
+            if (request.StartTransportTime == default)
+            {
+                throw new InvalidOperationException("Начало транспортировки не задано.");
+            }
+            var order = await repoContainer.OrderRepo.GetAsync(request.OrderId) ?? throw new EntityNotFoundException("Заказ не найден");
+            if(order.OrderStatus != OrderStatus.Pending)
+                throw new InvalidOperationException("Только заказы со статусом 'Pending' можно подтвердить");          
+            if(order.RouteId == null)
+                throw new InvalidOperationException("Невозможно подтвердить заказ без указания маршрута.");
+            if(order.DeliveryCost == null)
+                throw new InvalidOperationException("Невозможно подтвердить заказ без указания стоимости доставки.");
+            var route = await repoContainer.RouteRepo.GetAsync((int)order.RouteId) ?? throw new EntityNotFoundException("Маршрут не найден. Невозможно подтвердить заказ без указания маршрута.");
+            order.StartTransportTime = request.StartTransportTime;
+            order.PlannedDeliveryTime = request.StartTransportTime.Add(route.EstimatedDuration);
+            order.OrderStatus = OrderStatus.Confirmed;
+            await repoContainer.OrderRepo.UpdateAsync(order);
         }
     }
 }
