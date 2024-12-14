@@ -8,5 +8,6 @@ namespace TranzLog.Interfaces
         Task<List<UserOrderResponseDTO>> GetPendingOrdersAsync();
         Task UpdateOrderStatusAsync(int orderId, int newStatus);
         Task ConfirmOrderAsync(ConfirmOrderRequestDTO request);
+        Task UpdateDeliveryCost(int orderId);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -98,6 +97,48 @@ namespace TranzLog.Controllers
             {
                 await managerOrderService.ConfirmOrderAsync(request);
                 return Ok(new { Message = "Заказ подтвержден" });
+            }
+            catch (EntityNotFoundException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return NotFound($"{ex.Message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest($"{ex.Message}");
+            }
+            catch (InvalidParameterException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
+            }
+        }
+        /// <summary>
+        /// Обновляет стоимость доставки для указанного заказа.
+        /// </summary>
+        /// <param name="orderId">Идентификатор заказа.</param>
+        /// <returns>Результат выполнения операции.</returns>
+        /// <response code="200">Если стоимость доставки успешно обновлена.</response>
+        /// <response code="404">Если заказ или связанные с ним данные не найдены.</response>
+        /// <response code="400">Если данные заказа некорректны.</response>
+        /// <response code="500">Если произошла ошибка сервера.</response>
+        [HttpPatch("{orderId}/delivery-cost")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> UpdateDeliveryCost(int orderId)
+        {
+            try
+            {
+                await managerOrderService.UpdateDeliveryCost(orderId);
+                return Ok(new { Message = "Стоимость доставки успешно обновлена." });
             }
             catch (EntityNotFoundException ex)
             {

@@ -18,5 +18,6 @@ namespace TranzLog.Models.DTO
         public OrderStatus OrderStatus { get; set; }
         public double? DeliveryCost { get; set; }
         public string? TrackNumber { get; set; }
+        public List<CargoDTO>? Cargo { get; set; }
     }
 }

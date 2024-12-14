@@ -56,8 +56,8 @@ namespace TranzLog
             builder.Services.AddScoped<IDriverOrderService, DriverOrderService>();
             builder.Services.AddScoped<IRepositoryContainer, RepositoryContainer>();
             builder.Services.AddScoped<ITransactionManager, TransactionManager>();
-            builder.Services.AddScoped<IDistanceCalculationService, DistanceCalculationService>();
-            builder.Services.AddHttpClient<ICostCalculationService, CostCalculationService>();
+            builder.Services.AddHttpClient<IDistanceCalculationService, DistanceCalculationService>();
+            builder.Services.AddScoped<ICostCalculationService, CostCalculationService>();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             var key = builder.Configuration["Jwt:Key"];
