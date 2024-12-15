@@ -87,12 +87,53 @@ namespace TranzLog.Controllers
                 var order = await orderService.GetOrderInfoByTrackerAsync(trackNumber);
                 if (order != null)
                     return Ok(order);
-                return NotFound("Указанный трек-номер не найден.");
+                return NotFound("Заказ по указанному трек-номеру не найден.");
             }
             catch (InvalidParameterException ex)
             {
                 logger.LogWarning(ex, ex.Message);
                 return BadRequest($"{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
+            }
+        }
+        /// <summary>
+        /// Получает подробную информацию о заказе по указанному идентификатору.
+        /// </summary>
+        /// <param name="id">Идентификатор заказа.</param>
+        /// <returns>Детальная информация о заказе.</returns>
+        /// <response code="200">Информация о заказе успешно получена.</response>
+        /// <response code="400">Передан некорректный идентификатор заказа.</response>
+        /// <response code="403">Пользователь не имеет доступа к заказу.</response>
+        /// <response code="404">Заказ с указанным идентификатором не найден.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserOrderResponseDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<UserOrderResponseDTO>> GetOrderById(int id)
+        {
+            try
+            {
+                var order = await orderService.GetOrderInfoByIdAsync(id, HttpContext);
+                if (order != null)
+                    return Ok(order);
+                return NotFound("Заказ по указанному ID не найден.");
+            }
+            catch (InvalidParameterException ex)
+            {
+                logger.LogWarning(ex, ex.Message);
+                return BadRequest($"{ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return StatusCode(403, ex.Message);
             }
             catch (Exception ex)
             {
@@ -112,6 +153,35 @@ namespace TranzLog.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<List<UserOrderResponseDTO>>> GetAllUserOrders()
+        {
+            try
+            {
+                var orders = await orderService.GetUserOrdersAsync(HttpContext);
+                return Ok(orders);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                logger.LogError(ex.Message);
+                return StatusCode(401, "Ошибка аутентификации.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                return StatusCode(500, "Ошибка сервера");
+            }
+        }
+        /// <summary>
+        /// Получает заказы с ограниченным набором полей текущего пользователя.
+        /// </summary>
+        /// <returns>Список заказов с кратким содержанием, включая идентификатор, статус и дату создания.</returns>
+        /// <response code="200">Список заказов успешно получен.</response>
+        /// <response code="401">Ошибка аутентификации.</response>
+        /// <response code="500">Внутренняя ошибка сервера.</response>
+        [HttpGet("user-orders-summary")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<UserOrderSummaryDTO>>> GetUserOrdersSummary()
         {
             try
             {

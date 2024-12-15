@@ -90,7 +90,15 @@ namespace TranzLog.Repositories
                 return null;
             }
         }
-
+        public async Task<TransportOrder?> GetEntityAsync(int id)
+        {
+            if (id <= 0)
+                throw new InvalidParameterException($"Передано некорректное значение ID: {id}");
+            TransportOrder? order = await db.TransportOrders.FindAsync(id);
+            if(order == null) 
+                return null;
+            return order;
+        }
         public IEnumerable<TransportOrderDTO> GetAll(int page = 1, int pageSize = 10)
         {
             if (page < 1 || pageSize < 1)

@@ -17,6 +17,7 @@ namespace TranzLog.Models.DTO
             CreateMap<RegisterDTO, User>().ForMember(dest => dest.Password, opt => opt.Ignore());
             CreateMap<TransportOrder, UserOrderResponseDTO>();
             CreateMap<TransportOrder, DriverOrderDTO>();
+            CreateMap<TransportOrder, UserOrderSummaryDTO>();
         }
     }
 }

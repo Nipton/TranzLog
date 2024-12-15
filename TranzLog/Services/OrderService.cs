@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
 using TranzLog.Data;
 using TranzLog.Exceptions;
 using TranzLog.Interfaces;
@@ -132,6 +134,26 @@ namespace TranzLog.Services
                 return orderDTO;
             }
             return null;
+        }
+        public async Task<UserOrderResponseDTO?> GetOrderInfoByIdAsync(int id, HttpContext httpContext)
+        {
+            var user = await authenticationService.GetCurrentUserAsync(httpContext);
+            var order = await repoContainer.OrderRepo.GetEntityAsync(id);
+            if (order != null)
+            {
+                if (order.UserId == null || order.UserId != user.Id)
+                    throw new UnauthorizedAccessException("Нет прав для данного действия.");
+                var orderDTO = mapper.Map<UserOrderResponseDTO?>(order);
+                return orderDTO;
+            }
+            return null;
+        }
+        public async Task<List<UserOrderSummaryDTO>> GetUserOrdersSummaryAsync(HttpContext httpContext)
+        {
+            var user = await authenticationService.GetCurrentUserAsync(httpContext);
+            var orders = await repoContainer.OrderRepo.GetUserOrdersByIdAsync(user.Id);
+            var ordersDTO = orders.Select(order => mapper.Map<UserOrderSummaryDTO>(order)).ToList();
+            return ordersDTO;
         }
         public async Task<List<UserOrderResponseDTO>> GetUserOrdersAsync(HttpContext httpContext)
         {

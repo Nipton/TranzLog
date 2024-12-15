@@ -1,4 +1,5 @@
-﻿using TranzLog.Models;
+﻿using System.Threading.Tasks;
+using TranzLog.Models;
 using TranzLog.Models.DTO;
 using TranzLog.Repositories;
 
@@ -11,5 +12,6 @@ namespace TranzLog.Interfaces
         Task<List<TransportOrder>> GetPendingOrdersAsync();
         Task UpdateOrderStatusAsync(int orderId, OrderStatus newStatus);
         Task<List<DriverOrderDTO>> GetOrdersForDriverAsync(int driverId);
+        Task<TransportOrder?> GetEntityAsync(int id);
     }
 }
