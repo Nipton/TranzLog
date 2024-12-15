@@ -134,7 +134,7 @@ namespace TranzLogTests
             var result = await controller.GetOrderByTracker(trackNumber);
 
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result.Result);
-            Assert.Equal("Указанный трек-номер не найден.", notFoundResult.Value);
+            Assert.Equal("Заказ по указанному трек-номеру не найден.", notFoundResult.Value);
         }
         [Fact]
         public async Task GetOrderByTracker_ReturnsServerError()

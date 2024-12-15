@@ -177,7 +177,7 @@ namespace TranzLogTests
             {
                 Consignee = new ConsigneeDTO(),
                 Shipper = new ShipperDTO(),
-                Route = new RouteDTO(),
+                Route = null,
                 CargoList = new List<CargoDTO> { new CargoDTO() }
             };
 
@@ -187,12 +187,13 @@ namespace TranzLogTests
             repoContainerMock.Setup(repo => repo.RouteRepo.RouteExistsAsync(It.IsAny<int>())).ReturnsAsync(false);
 
 
+
             var orderService = new OrderService(null, null, repoContainerMock.Object, authServiceMock.Object, null, null);
 
             await Assert.ThrowsAsync<InvalidParameterException>(() => orderService.CreateOrderByUserAsync(userOrderDTO, httpContextMock.Object));
             await Assert.ThrowsAsync<InvalidParameterException>(() => orderService.CreateOrderByUserAsync(userOrderDTO2, httpContextMock.Object));
             await Assert.ThrowsAsync<InvalidParameterException>(() => orderService.CreateOrderByUserAsync(userOrderDTO3, httpContextMock.Object));
-            await Assert.ThrowsAsync<EntityNotFoundException>(() => orderService.CreateOrderByUserAsync(userOrderDTO4, httpContextMock.Object));
+            await Assert.ThrowsAsync<InvalidParameterException>(() => orderService.CreateOrderByUserAsync(userOrderDTO4, httpContextMock.Object));
         }
         [Fact]
         public async Task CreateOrderByUserAsync_WhenErrorTransaction()
@@ -211,6 +212,12 @@ namespace TranzLogTests
             var transactionManagerMock = new Mock<ITransactionManager>();
             transactionManagerMock.Setup(tm => tm.BeginTransaction()).Returns(transactionMock.Object);
 
+            var distanceCalculationMock = new Mock<IDistanceCalculationService>();
+            distanceCalculationMock.Setup(calc => calc.CalculateDistanceAsync(It.IsAny<Route>())).ReturnsAsync((100, TimeSpan.FromSeconds(10)));
+            var costCalculationMock = new Mock<ICostCalculationService>();
+            costCalculationMock.Setup(calc => calc.CalculateCost(100, It.IsAny<IEnumerable<Cargo>>())).Returns(10);
+            var mapperMock = new Mock<IMapper>();
+
             var repoContainerMock = new Mock<IRepositoryContainer>();
             repoContainerMock.Setup(repo => repo.RouteRepo.RouteExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             repoContainerMock.Setup(repo => repo.ConsigneeRepo.AddAsync(It.IsAny<ConsigneeDTO>())).ThrowsAsync(new Exception());
@@ -218,7 +225,7 @@ namespace TranzLogTests
             var authServiceMock = new Mock<IAuthenticationService>();
             authServiceMock.Setup(service => service.GetCurrentUserAsync(It.IsAny<HttpContext>())).ReturnsAsync(new UserDTO { Id = 1 });
 
-            var orderService = new OrderService(transactionManagerMock.Object, null, repoContainerMock.Object, authServiceMock.Object, null, null);
+            var orderService = new OrderService(transactionManagerMock.Object, mapperMock.Object, repoContainerMock.Object, authServiceMock.Object, costCalculationMock.Object, distanceCalculationMock.Object);
 
 
             await Assert.ThrowsAsync<Exception>(() => orderService.CreateOrderByUserAsync(userOrderDTO, httpContextMock.Object));
